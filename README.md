@@ -36,6 +36,25 @@ Documentation: [https://repman.io/docs/](https://repman.io/docs/)
 
 `docker-compose.yml` builds the image from this checkout: `docker compose up -d --build`.
 
+#### Private Git repositories over SSH
+
+Packages are synchronized by the `consumer` service as `www-data` (home `/home/www-data`). Give it
+a deploy key in a `docker-compose.override.yml` next to `docker-compose.yml`:
+
+```yaml
+services:
+  consumer:
+    volumes:
+      - ./ssh:/home/www-data/.ssh:ro
+```
+
+`./ssh` holds the private key (`id_ed25519` or `id_rsa`) and optionally a `known_hosts` file. On Linux
+the key must belong to the container's `www-data` (uid 82): `sudo chown -R 82:82 ssh && chmod 600 ssh/id_*`.
+Then add the package as *Git* with an SSH URL such as `git@git.example.com:team/package.git`. Hosts are
+trusted on first contact and refused if their key changes later; with the read-only mount ssh cannot
+record them and prints a warning, which `known_hosts` avoids. Such repositories have no archives, so
+Composer installs them from source and developers need access to the repository too.
+
 #### Upgrading a Docker installation
 
 These steps were tested by upgrading a `buddy/repman:1.3.4` installation with organizations,
@@ -75,7 +94,7 @@ for what changed.
    ```
 
    Packages whose first synchronization failed have no name yet and are skipped by
-   `synchronize-all`; use *Synchronize* on the package list for those.
+   `synchronize-all`; use *Update* in their *Actions* menu on the package list.
 
 Rolling back: `docker compose down`, check out the previous version, start it, then restore the
 database with `docker compose exec -T database pg_restore -U main -d main --clean < repman-backup.dump`
