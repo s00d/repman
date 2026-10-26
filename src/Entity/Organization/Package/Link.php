@@ -28,7 +28,7 @@ class Link
     #[ORM\Column(type: 'string')]
     private string $target;
 
-    #[ORM\Column(name: '`constraint`', type: 'string')]
+    #[ORM\Column(name: '`constraint`', type: 'text')]
     private string $constraint;
 
     public function __construct(
