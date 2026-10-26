@@ -153,14 +153,14 @@ final class FixturesManager
     {
         $package = $this->container->get(PackageRepository::class)->getById(Uuid::fromString($packageId));
         $package->webhookWasCreated();
-        $this->container->get('doctrine.orm.entity_manager')->flush($package);
+        $this->container->get('doctrine.orm.entity_manager')->flush();
     }
 
     public function setWebhookError(string $packageId, string $error): void
     {
         $package = $this->container->get(PackageRepository::class)->getById(Uuid::fromString($packageId));
         $package->webhookWasNotCreated($error);
-        $this->container->get('doctrine.orm.entity_manager')->flush($package);
+        $this->container->get('doctrine.orm.entity_manager')->flush();
     }
 
     public function addPackageDownload(int $count, string $packageId, string $version = '1.0.0', ?\DateTimeImmutable $date = null): void
@@ -276,7 +276,7 @@ final class FixturesManager
     {
         $organization = $this->container->get(OrganizationRepository::class)->getById(Uuid::fromString($organizationId));
         $organization->changeAnonymousAccess(true);
-        $this->container->get('doctrine.orm.entity_manager')->flush($organization);
+        $this->container->get('doctrine.orm.entity_manager')->flush();
     }
 
     public function changeConfig(string $key, string $value): void

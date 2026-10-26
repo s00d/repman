@@ -9,6 +9,7 @@ use Buddy\Repman\Form\Type\User\SendResetPasswordLinkType;
 use Buddy\Repman\Message\User\ResetPassword;
 use Buddy\Repman\Message\User\SendPasswordResetLink;
 use Buddy\Repman\Service\Config;
+use cbschuld\Browser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -53,7 +54,7 @@ class SecurityController extends AbstractController
         $form = $this->createForm(SendResetPasswordLinkType::class);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $browser = new \Browser();
+            $browser = new Browser((string) $request->headers->get('User-Agent'));
             $this->messageBus->dispatch(new SendPasswordResetLink(
                 $form->get('email')->getData(),
                 $browser->getPlatform(),
