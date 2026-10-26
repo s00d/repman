@@ -108,6 +108,61 @@ final class ComposerPackageSynchronizerTest extends TestCase
         (new \Symfony\Component\Filesystem\Filesystem())->remove($repoDir);
     }
 
+    public function testSynchronizeGitPackageWithoutDistRecordsVersionsAndLinks(): void
+    {
+        $repoDir = sys_get_temp_dir().'/repman-git-'.uniqid('', true);
+        mkdir($repoDir);
+        $git = static function (string ...$command) use ($repoDir): void {
+            new Process(['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'init.defaultBranch=main', ...$command], $repoDir)->mustRun();
+        };
+        file_put_contents($repoDir.'/composer.json', (string) json_encode(['name' => 'buddy-works/plain-git', 'require' => ['psr/log' => '^3.0']]));
+        $git('init');
+        $git('add', 'composer.json');
+        $git('commit', '-m', 'initial');
+        $git('tag', '1.2.0');
+
+        // a plain git repository has no dist, Composer installs it from source
+        $package = PackageMother::withOrganization('git', $repoDir, 'buddy');
+        $this->synchronizer->synchronize($package);
+
+        self::assertTrue($package->isSynchronizedSuccessfully(), (string) $this->getProperty($package, 'lastSyncError'));
+        $versions = array_map(fn (Version $version): string => $version->version(), $package->versions()->toArray());
+        sort($versions);
+        self::assertSame(['1.2.0', 'dev-main'], $versions);
+        $release = $package->getVersion('1.2.0');
+        self::assertInstanceOf(Version::class, $release);
+        self::assertSame(0, $release->size());
+        self::assertSame(['requires-psr/log-^3.0'], array_values(array_map(
+            fn (Link $link): string => $link->type().'-'.$link->target().'-'.$link->constraint(),
+            $package->links()->toArray(),
+        )));
+
+        @unlink($this->baseDir.'/buddy/p/buddy-works/plain-git.json');
+        (new \Symfony\Component\Filesystem\Filesystem())->remove($repoDir);
+    }
+
+    public function testSynchronizeGitPackageWithoutReleasesKeepsLinksOfTheDefaultBranch(): void
+    {
+        $repoDir = sys_get_temp_dir().'/repman-git-'.uniqid('', true);
+        mkdir($repoDir);
+        file_put_contents($repoDir.'/composer.json', (string) json_encode(['name' => 'buddy-works/untagged', 'require' => ['psr/log' => '^3.0']]));
+        foreach ([['init'], ['add', 'composer.json'], ['commit', '-m', 'initial']] as $command) {
+            new Process(['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'init.defaultBranch=main', ...$command], $repoDir)->mustRun();
+        }
+
+        // Composer lists the default branch twice, as dev-main and as its 9999999-dev alias
+        $package = PackageMother::withOrganization('git', $repoDir, 'buddy');
+        $this->synchronizer->synchronize($package);
+
+        self::assertTrue($package->isSynchronizedSuccessfully(), (string) $this->getProperty($package, 'lastSyncError'));
+        self::assertSame('no stable release', $this->getProperty($package, 'latestReleasedVersion'));
+        self::assertSame(['dev-main'], array_values(array_map(fn (Version $version): string => $version->version(), $package->versions()->toArray())));
+        self::assertCount(1, $package->links());
+
+        @unlink($this->baseDir.'/buddy/p/buddy-works/untagged.json');
+        (new \Symfony\Component\Filesystem\Filesystem())->remove($repoDir);
+    }
+
     public function testSynchronizeError(): void
     {
         $this->synchronizer->synchronize($package = PackageMother::withOrganization('artifact', '/non/exist/path', 'buddy'));
