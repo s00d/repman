@@ -57,7 +57,7 @@ final class RegisterType extends AbstractType
             ->add('recaptcha', RecaptchaType::class)
             ->add('register', SubmitType::class, [
                 'label' => 'Sign up',
-                'attr' => ['class' => 'btn-primary btn-block'],
+                'attr' => ['class' => 'btn-primary w-full'],
             ])
         ;
     }

@@ -1,12 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block header %}
-    <a href="{{ path('organization_packages', {"organization":organization.alias}) }}"
-       class="btn btn-secondary px-1 mr-1" title="Package List">
-        <span class="text-muted mr-1">&laquo;</span>
-        {% include 'svg/package.svg' %}
-    </a>
-
+    {% include 'component/backToPackages.html.twig' %}
     <a href="{{ path('organization_package_details', {organization: organization.alias, package: package.id}) }}">{{ package.name }}</a>
     webhook
 {% endblock %}
@@ -21,48 +16,39 @@
         In other cases, you can configure it manually.
     </p>
 
-    <p>
-        <strong>Webhook status</strong>:
+    <div class="mb-3 flex flex-wrap items-center gap-2">
+        <strong>Webhook status:</strong>
         {% if package.allowToAutoAddWebhook %}
             {% if package.webhookCreatedAt is not null %}
-                {% include 'svg/check.svg' %} created
-                <span data-toggle="tooltip" title="{{ package.webhookCreatedAt|date_time }} {{ gmt_offset() }}">
+                <span class="inline-flex items-center gap-1 text-emerald-700">{% include 'svg/check.svg' %} created</span>
+                <span title="{{ package.webhookCreatedAt|date_time }} {{ gmt_offset() }}">
                     {{ package.webhookCreatedAt|date_time|time_diff }}
                 </span>
             {% else %}
                 not added
             {% endif %}
-            <a
-                    href="#"
-                    class="btn btn-sm {{ package.webhookCreatedAt ? 'btn-secondary' : 'btn-yellow' }}"
-                    data-target="confirmation"
-                    data-action="{{ path('organization_package_webhook', {organization: organization.alias, package: package.id }) }}"
-                    data-method="POST"
-            >Synchronize webhook</a>
-            {% if package.webhookCreatedError is not null %}
-                <div class="alert alert-danger small">
-                    The following error occurred while adding a webhook:<br />
-                    {{ package.webhookCreatedError }}
-                </div>
-            {% endif %}
+            <button type="button"
+                    class="btn btn-sm {{ package.webhookCreatedAt ? 'btn-secondary' : 'btn-warning' }}"
+                    data-confirm-action="{{ path('organization_package_webhook', {organization: organization.alias, package: package.id }) }}"
+                    data-confirm-method="POST"
+            >Synchronize webhook</button>
         {% else %}
             unable to automatically add a webhook, please add it manually
         {% endif %}
-    </p>
+    </div>
+    {% if package.allowToAutoAddWebhook and package.webhookCreatedError is not null %}
+        <div class="alert alert-danger text-xs">
+            The following error occurred while adding a webhook:<br />
+            {{ package.webhookCreatedError }}
+        </div>
+    {% endif %}
 
     <p>To manually configure the webhook, all you have to do is make a POST request to the url below.</p>
 
     <p><strong>Webhook URL [POST]:</strong></p>
 
-    <div class="row mb-4">
-        <div class="input-group col-6">
-            <input id="webhook" type="text" class="form-control" readonly value="{{ url('package_webhook', {package: package.id}) }}" />
-            <span class="input-group-append">
-                <button data-clipboard-target="#webhook" class="copy-to-clipboard btn btn-primary p-2" type="button" title="Copy to clipboard" data-toggle="tooltip">
-                    {% include 'svg/clipboard.svg' %}
-                </button>
-            </span>
-        </div>
+    <div class="mb-4 max-w-xl">
+        {% include 'component/copyInput.html.twig' with {id: 'webhook', value: url('package_webhook', {package: package.id}), label: 'Webhook URL'} %}
     </div>
 
     <p>
@@ -70,34 +56,33 @@
         The synchronization result will be visible on your organization's package list.
     </p>
 
-
-
-    <h3>Recent requests</h3>
+    <h3 class="mt-6">Recent requests</h3>
 
     {% if recentRequests is not empty %}
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>IP</th>
-                <th>User agent</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for request in recentRequests %}
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
                 <tr>
-                    <td>
-                        <span data-toggle="tooltip" title="{{ request.date|date_time }} {{ gmt_offset() }}">
-                            {{ request.date|date_time|time_diff }}
-                        </span>
-                    </td>
-                    <td>{{ request.ip | default('n/a') }}</td>
-                    <td>{{ request.userAgent | default('n/a') }}</td>
+                    <th>Date</th>
+                    <th>IP</th>
+                    <th>User agent</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-
+                </thead>
+                <tbody>
+                {% for request in recentRequests %}
+                    <tr>
+                        <td class="whitespace-nowrap">
+                            <span title="{{ request.date|date_time }} {{ gmt_offset() }}">
+                                {{ request.date|date_time|time_diff }}
+                            </span>
+                        </td>
+                        <td>{{ request.ip | default('n/a') }}</td>
+                        <td class="break-all">{{ request.userAgent | default('n/a') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% else %}
         <p>No requests have been made at this time</p>
     {% endif %}

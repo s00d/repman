@@ -576,6 +576,28 @@ final class OrganizationControllerTest extends FunctionalTestCase
         self::assertStringContainsString('{"x":"'.date('Y-m-d').'","y":3}', $this->lastResponseBody());
     }
 
+    public function testPackageStatsOfABranchVersionWithASlash(): void
+    {
+        $buddyId = $this->fixtures->createOrganization('version-tracking', $this->userId);
+        $packageId = $this->fixtures->addPackage($buddyId, 'https://buddy.com');
+        $this->fixtures->addPackageDownload(2, $packageId, $version = 'dev-feature/x');
+
+        $this->client->request('GET', $this->urlTo('organization_package_stats', [
+            'organization' => 'version-tracking',
+            'package' => $packageId,
+        ]));
+        self::assertTrue($this->client->getResponse()->isOk());
+
+        $this->client->request('GET', $this->urlTo('organization_package_version_stats', [
+            'organization' => 'version-tracking',
+            'package' => $packageId,
+            'version' => $version,
+        ]));
+
+        self::assertTrue($this->client->getResponse()->isOk());
+        self::assertStringContainsString('{"x":"'.date('Y-m-d').'","y":2}', $this->lastResponseBody());
+    }
+
     public function testPackageWebhookPage(): void
     {
         $buddyId = $this->fixtures->createOrganization('buddy', $this->userId);
@@ -824,7 +846,7 @@ final class OrganizationControllerTest extends FunctionalTestCase
         self::assertStringContainsString('ok', $this->lastResponseBody());
         self::assertStringContainsString('no advisories', $this->lastResponseBody());
         self::assertStringContainsString('error', $this->lastResponseBody());
-        self::assertStringContainsString('&lt;b&gt;RuntimeException&lt;/b&gt; - Some error', $this->lastResponseBody());
+        self::assertStringContainsString('<b>RuntimeException</b> - Some error', $this->lastResponseBody());
     }
 
     public function testPackageScanResultsWithOkStatus(): void

@@ -3,15 +3,16 @@
 {% block header %}Generate a new API token{% endblock %}
 
 {% block content %}
- <div class="row">
-    <div class="col-md-6 col-lg-4">
-        {{ form_start(form) }}
-            {{ form_errors(form) }}
-            <label for="name" class="form-label mt-2 required">
+<div class="max-w-md">
+    {{ form_start(form) }}
+        {{ form_errors(form) }}
+        <div class="form-row">
+            <label for="{{ form.name.vars.id }}" class="form-label required">
                 Name {% include 'component/docsLink.html.twig' with {'article': 'api'} %}
             </label>
             {{ form_widget(form.name) }}
-        {{ form_end(form) }}
-    </div>
+            {{ form_errors(form.name) }}
+        </div>
+    {{ form_end(form) }}
 </div>
 {% endblock %}

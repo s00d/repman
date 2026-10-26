@@ -10,6 +10,28 @@ on:
     branches: [master]
 
 jobs:
+  frontend:
+    name: "Frontend"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+        with:
+          ref: ${{ github.event.pull_request.head.ref || '' }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          show-progress: false
+
+      - uses: "actions/setup-node@v4"
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: "npm ci"
+      - run: "npm audit --audit-level=moderate"
+      - run: "npm run typecheck"
+      - run: "npm test"
+      - run: "npm run build"
+
   tests:
     name: "PHP ${{ matrix.php }} | PostgreSQL ${{ matrix.postgresql }}"
     runs-on: "ubuntu-latest"

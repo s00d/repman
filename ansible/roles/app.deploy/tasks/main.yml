@@ -42,6 +42,15 @@
     optimize_autoloader: yes
   become_user: "{{ system_user }}"
 
+- name: Build frontend assets (needs Node.js >= 22.12 on the server)
+  command: "{{ item }}"
+  args:
+    chdir: "{{ app_current_release_dir }}"
+  with_items:
+    - npm ci --no-audit --no-fund
+    - npm run build
+  become_user: "{{ system_user }}"
+
 - name: Create symlinks to shared folders
   file:
     src: "{{ app_shared_dir }}/{{ item }}"

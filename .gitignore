@@ -42,3 +42,8 @@ composer.phar
 /.php-cs-fixer.php
 /.php-cs-fixer.cache
 ###< php-cs-fixer/shim ###
+
+###> frontend ###
+/node_modules/
+/public/build/
+###< frontend ###

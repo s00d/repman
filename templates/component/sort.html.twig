@@ -16,7 +16,7 @@
     </a>
 {% else %}
     <a href="{{ path(app.request.get('_route'), app.request.get('_route_params') | merge(app.request.query.all) | merge({sort: column ~ ':asc', offset: 0})) }}"
-       title="Sort ascending" class="text-muted">
+       title="Sort ascending" class="text-slate-400">
         {% include 'svg/sort-asc.svg' %}
     </a>
 {% endif %}

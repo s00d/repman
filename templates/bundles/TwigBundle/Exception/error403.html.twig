@@ -5,9 +5,7 @@
 {% block status_description %}We are sorry but you do not have permission to access this page{% endblock %}
 
 {% block button %}
-    <div class="empty-action">
-        <a href="#" onclick="window.history.back();" class="btn btn-primary">
-            {% include 'svg/arrow-left.svg' %} Take me back
-        </a>
-    </div>
+    <button type="button" onclick="history.back()" class="btn btn-primary">
+        {% include 'svg/arrow-left.svg' %} Take me back
+    </button>
 {% endblock %}

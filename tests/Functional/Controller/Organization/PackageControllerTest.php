@@ -226,14 +226,15 @@ final class PackageControllerTest extends FunctionalTestCase
         $packageId = $this->fixtures->addPackage($buddyId, 'https://buddy.com');
         $this->fixtures->syncPackageWithData($packageId, 'buddy-works/buddy', 'Test', '1.1.1', new \DateTimeImmutable());
 
-        $this->client->request('GET', $this->urlTo('organization_package_edit', ['organization' => 'buddy', 'package' => $packageId]));
+        $crawler = $this->client->request('GET', $this->urlTo('organization_package_edit', ['organization' => 'buddy', 'package' => $packageId]));
 
         self::assertTrue($this->client->getResponse()->isOk());
 
-        $this->client->submitForm('Update', [
+        // the actions menu has an "Update" (sync) button too, outside the form
+        $this->client->submit($crawler->filterXPath('//form[@method="post"]')->selectButton('Update')->form([
             'url' => 'http://github.com/test/test',
             'keepLastReleases' => '6',
-        ]);
+        ]));
 
         self::assertTrue($this->client->getResponse()->isRedirect($this->urlTo('organization_packages', ['organization' => 'buddy'])));
 

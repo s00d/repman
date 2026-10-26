@@ -3,7 +3,7 @@
 {% block header %}Users{% endblock %}
 
 {% block content %}
-<div class="markdown">
+<div class="table-wrap">
     <table class="table">
         <thead>
             <tr>
@@ -26,9 +26,8 @@
                             <button
                                 class="btn btn-danger btn-sm"
                                 type="button"
-                                data-target="confirmation"
-                                data-action="{{ path('admin_user_disable', {user: user.id }) }}"
-                                data-method="POST"
+                                data-confirm-action="{{ path('admin_user_disable', {user: user.id }) }}"
+                                data-confirm-method="POST"
                             >
                                 Disable
                             </button>
@@ -36,9 +35,8 @@
                             <button
                                 class="btn btn-success btn-sm"
                                 type="button"
-                                data-target="confirmation"
-                                data-action="{{ path('admin_user_enable', {user: user.id }) }}"
-                                data-method="POST"
+                                data-confirm-action="{{ path('admin_user_enable', {user: user.id }) }}"
+                                data-confirm-method="POST"
                             >
                                 Enable
                             </button>
@@ -49,6 +47,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {% include 'component/pagination.html.twig' with {'path_name': 'admin_user_list'} %}
+</div>
+{% include 'component/pagination.html.twig' with {'path_name': 'admin_user_list'} %}
 </div>
 {% endblock %}

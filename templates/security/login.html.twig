@@ -4,79 +4,50 @@
 
 {% block card %}
 <form class="card" method="post">
-    <div class="card-body p-6">
-        <div class="card-title">Login to your account</div>
+    <div class="card-body">
+        <h1 class="mb-5 text-lg font-semibold">Login to your account</h1>
 
         {% include 'component/flash.html.twig' %}
 
         {% if error %}
-            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            <div class="alert alert-danger" role="alert">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
         {% endif %}
 
         {% if app.user %}
-            <div class="mb-3">
+            <p>
                 You are logged in as {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Logout</a>
-            </div>
+            </p>
         {% endif %}
 
         {% if oauth_enabled() %}
-            <div class="text-center">
-                {% if oauth_enabled('github') %}
-                    <a href="{{ url('auth_github_start') }}" class="btn btn-github btn-sm">
-                        {% include 'svg/github-icon.svg' %} GitHub
-                    </a>
-                {% endif %}
-
-                {% if oauth_enabled('gitlab') %}
-                    <a href="{{ url('auth_gitlab_start') }}" class="btn btn-orange btn-sm">
-                        {% include 'svg/gitlab-icon.svg' %} GitLab
-                    </a>
-                {% endif %}
-
-                {% if oauth_enabled('bitbucket') %}
-                    <a href="{{ url('auth_bitbucket_start') }}" class="btn btn-bitbucket btn-sm">
-                        {% include 'svg/bitbucket-icon.svg' %} Bitbucket
-                    </a>
-                {% endif %}
-
-                {% if oauth_enabled('buddy') %}
-                    <a href="{{ url('auth_buddy_start') }}" class="btn btn-dark btn-sm">
-                        <img alt="Buddy" src="https://app.buddy.works/icons/favicon.png" class="icon" />
-                        Buddy
-                    </a>
-                {% endif %}
-            </div>
-
-            <hr />
+            {% include 'component/oauthButtons.html.twig' with {route_prefix: 'auth'} %}
 
             {% if localLoginEnabled %}
-                <div class="text-center"><small>or sign in with e-mail</small></div>
+                <p class="my-4 flex items-center gap-3 text-xs text-slate-500 before:h-px before:flex-1 before:bg-slate-200 after:h-px after:flex-1 after:bg-slate-200">or sign in with e-mail</p>
             {% endif %}
         {% endif %}
 
         {% if localLoginEnabled %}
-            <div class="mb-2">
+            <div class="form-row">
                 <label for="inputEmail" class="form-label">Email address</label>
-                <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" placeholder="Enter email" required autofocus>
+                <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" placeholder="Enter email" required autofocus autocomplete="username">
             </div>
-            <div class="mb-2">
-                <a href="{{ path('app_send_reset_password_link') }}" class="float-right small">I forgot password</a>
-                <label for="inputPassword" class="form-label">
-                    Password
-                </label>
-                <input type="password" name="password" id="inputPassword" class="form-control" required autocomplete="off">
-            </div>
-
-            <div class="mb-2">
-                <label class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" name="_remember_me"/>
-                    <span class="custom-control-label">Remember me</span>
-                </label>
+            <div class="form-row">
+                <div class="flex items-baseline justify-between">
+                    <label for="inputPassword" class="form-label">Password</label>
+                    <a href="{{ path('app_send_reset_password_link') }}" class="text-xs">I forgot password</a>
+                </div>
+                <input type="password" name="password" id="inputPassword" class="form-control" required autocomplete="current-password">
             </div>
 
-            <div class="form-footer">
-                <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+            <div class="form-row">
+                <label class="form-check">
+                    <input type="checkbox" name="_remember_me"/>
+                    Remember me
+                </label>
             </div>
+
+            <button type="submit" class="btn btn-primary w-full">Sign in</button>
 
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
         {% endif %}

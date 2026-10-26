@@ -1,141 +1,82 @@
 {% set current_route = app.request.get('_route') %}
+{% macro nav_link(route, params, icon, label, current_route) %}
+    <a class="nav-link {{ current_route == route ? 'active' : '' }}" href="{{ path(route, params) }}"{% if current_route == route %} aria-current="page"{% endif %}>
+        {% include 'svg/' ~ icon ~ '.svg' %}
+        <span class="hidden sm:inline">{{ label }}</span>
+    </a>
+{% endmacro %}
+{% import _self as nav %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
-    <meta http-equiv="Content-Language" content="en"/>
-    <meta name="msapplication-TileColor" content="#206bc4"/>
     <meta name="theme-color" content="#206bc4"/>
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-    <meta name="apple-mobile-web-app-capable" content="yes"/>
-    <meta name="mobile-web-app-capable" content="yes"/>
-    <meta name="HandheldFriendly" content="True"/>
-    <meta name="MobileOptimized" content="320"/>
-
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon"/>
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon"/>
     <title>{% block title %}Repman - PHP Repository Manager{% endblock %}</title>
     {% block stylesheets %}
-        <link rel="stylesheet" href="{{ asset('dist/css/tabler.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('dist/css/dashboard.css') }}">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/css/bootstrap-select.min.css" integrity="sha384-dTqTc7d5t+FKhTIaMmda32pZNoXY/Y0ui0hRl5GzDQp4aARfEzbP1jzX6+KRuGKg" crossorigin="anonymous">
+        {{ vite_entry_tags('assets/app.ts') }}
     {% endblock %}
 </head>
-<body class="antialiased">
+<body class="{% block body_class %}min-h-screen{% endblock %}">
     {% block body %}
-    <div class="wrapper">
-        <div class="content">
-            <header class="topnav">
-                <div class="container">
-                    <div class="navbar navbar-expand-lg navbar-light">
-                        <a href="{{ path('index') }}" class="logo">
-                            <img src="{{ asset('repman-horizontal.svg') }}" style="height: 3rem;" alt="Repman - PHP Repository manager" />
-                        </a>
-                        {% block user %}
-                            {% include 'component/user.html.twig' %}
-                        {% endblock %}
-                    </div>
-                </div>
-            </header>
-            {% block menu %}
-            <header class="topnav">
-                <div class="navbar navbar-expand-lg navbar-light">
-                    <div class="container">
-                        <ul class="navbar-nav flex-wrap">
-                            {% if organization is defined %}
-                                <li class="nav-item">
-                                    <a class="nav-link {{ current_route == 'organization_overview' ? 'active' : '' }}" href="{{ path('organization_overview', {"organization":organization.alias}) }}">
-                                        <span class="nav-icon">{% include 'svg/home.svg' %}</span>
-                                        <span class="d-none d-sm-block">Overview</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link {{ current_route == 'organization_packages' ? 'active' : '' }}" href="{{ path('organization_packages', {"organization":organization.alias}) }}">
-                                        <span class="nav-icon">{% include 'svg/package.svg' %}</span>
-                                        <span class="d-none d-sm-block">Packages</span>
-                                    </a>
-                                </li>
-                                {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}
-                                    <li class="nav-item">
-                                        <a class="nav-link {{ current_route == 'organization_tokens' ? 'active' : '' }}" href="{{ path('organization_tokens', {"organization":organization.alias}) }}">
-                                            <span class="nav-icon">{% include 'svg/lock.svg' %}</span>
-                                            <span class="d-none d-sm-block">Tokens</span>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link {{ current_route == 'organization_members' ? 'active' : '' }}" href="{{ path('organization_members', {"organization":organization.alias}) }}">
-                                            <span class="nav-icon">{% include 'svg/users.svg' %}</span>
-                                            <span class="d-none d-sm-block">Members</span>
-                                        </a>
-                                    </li>
-                                {% endif %}
-                                {% if is_granted('ROLE_ORGANIZATION_OWNER', organization) %}
-                                    <li class="nav-item">
-                                        <a class="nav-link {{ current_route == 'organization_settings' ? 'active' : '' }}" href="{{ path('organization_settings', {"organization":organization.alias}) }}">
-                                            <span class="nav-icon">{% include 'svg/sliders.svg' %}</span>
-                                            <span class="d-none d-sm-block">Settings</span>
-                                        </a>
-                                    </li>
-                                {% endif %}
-                            {% else %}
-                                <li class="nav-item">
-                                    <a class="nav-link {{ current_route == 'index' ? 'active' : '' }}" href="{{ path('index') }}">
-                                        <span class="nav-icon">{% include 'svg/home.svg' %}</span>
-                                        <span class="d-none d-sm-block">Home</span>
-                                    </a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                </div>
-            </header>
-            {% endblock menu %}
-            {% block page %}
-            <div class="content-page">
-                <main class="container my-4 flex-fill">
-                    <div class="row justify-content-center">
-                        <div class="col-lg-12">
-
-                            {% include 'component/flash.html.twig' %}
-
-                            <div class="card">
-                                {% if block('header') is defined %}
-                                    <div class="card-header">
-                                        <h3 class="card-title flex-grow-1">
-                                            {% block header %}{% endblock %}
-                                        </h3>
-                                        <div class="d-flex">
-                                            {% block header_btn %}{% endblock %}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                <div class="card-body">
-                                    {% block content %}{% endblock %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-            </div>
-            {% endblock page %}
+    <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-2">
+            <a href="{{ path('index') }}" class="shrink-0">
+                <img src="{{ asset('repman-horizontal.svg') }}" class="h-12" alt="Repman - PHP Repository manager" />
+            </a>
+            {% block user %}
+                {% include 'component/user.html.twig' %}
+            {% endblock %}
         </div>
-    </div>
+    </header>
+    {% block menu %}
+    <nav class="border-b border-slate-200 bg-white" aria-label="Main">
+        <div class="mx-auto flex max-w-7xl flex-wrap px-4">
+            {% if organization is defined %}
+                {{ nav.nav_link('organization_overview', {organization: organization.alias}, 'home', 'Overview', current_route) }}
+                {{ nav.nav_link('organization_packages', {organization: organization.alias}, 'package', 'Packages', current_route) }}
+                {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}
+                    {{ nav.nav_link('organization_tokens', {organization: organization.alias}, 'lock', 'Tokens', current_route) }}
+                    {{ nav.nav_link('organization_members', {organization: organization.alias}, 'users', 'Members', current_route) }}
+                {% endif %}
+                {% if is_granted('ROLE_ORGANIZATION_OWNER', organization) %}
+                    {{ nav.nav_link('organization_settings', {organization: organization.alias}, 'sliders', 'Settings', current_route) }}
+                {% endif %}
+            {% else %}
+                {{ nav.nav_link('index', {}, 'home', 'Home', current_route) }}
+            {% endif %}
+        </div>
+    </nav>
+    {% endblock menu %}
+    {% block page %}
+    <main class="mx-auto max-w-7xl px-4 py-6">
+        {% include 'component/flash.html.twig' %}
+
+        <div class="card">
+            {% if block('header') is defined %}
+                <div class="card-header">
+                    <h2 class="card-title">
+                        {% block header %}{% endblock %}
+                    </h2>
+                    <div class="flex flex-wrap items-center gap-2">
+                        {% block header_btn %}{% endblock %}
+                    </div>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </main>
+    {% endblock page %}
     {% endblock body %}
     {% include 'component/confirmationModal.html.twig' %}
 
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha384-1H217gwSVyLSIfaLxHbE7dRb3v4mYCKbpQvzx0cegeju1MVsGrX5xXxAvs/HgeFs" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.18/dist/js/bootstrap-select.min.js" integrity="sha384-x8fxIWvLdZnkRaCvkDXOlxd6UP+qga975FjnbRp6NRpL9jjXjY9TwF9y7z4AccxS" crossorigin="anonymous"></script>
-
     {% if ga4_tracking is not empty %}
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga4_tracking }}"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga4_tracking|url_encode }}"></script>
         <script>{% include 'component/js/ga4.js' %}</script>
     {% endif %}
-
-    <script>{% include 'component/js/base.js' %}</script>
     {% block javascripts %}{% endblock %}
 </body>
 </html>

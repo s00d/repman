@@ -13,11 +13,11 @@
 {# printed inside <pre>, so no whitespace may leak out of this block #}
 {% block token %}
     {%- if tokenCount <= 1 -%}
-        <span class="token d-none" data-type="token">{{ token }}</span>
+        <span data-token-group><span data-token hidden>{{ token }}</span>
         {{- '' -}}
-        <button class="btn btn-primary btn-sm show-token">Show token</button>
+        <button type="button" class="btn btn-primary btn-sm align-baseline" data-reveal-token>Show token</button></span>
     {%- else -%}
-        <a href="{{ path('organization_tokens', {organization: organization.alias}) }}" class="btn btn-primary btn-sm">Get token</a>
+        <a href="{{ path('organization_tokens', {organization: organization.alias}) }}" class="btn btn-primary btn-sm align-baseline">Get token</a>
     {%- endif -%}
 {% endblock %}
 
@@ -25,38 +25,34 @@
 <p>
     Add these lines to your composer.json file, or add a new repository URL if you already have one or more:
 </p>
-<div class="highlight">
-<pre>
+<pre class="mb-3">
 {
     "repositories": [
         {"type": "composer", "url": "{{ url('organization_repo_url', {organization: organization.alias}) | trim('/') }}"}
     ]
 }
 </pre>
-</div>
 {% endblock %}
 
 {% block content %}
-    <div class="markdown">
-        {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}
-            {% if tokenCount > 0 %}
-                <p>Configure global authentication to access this organization's packages:</p>
-                <div class="highlight">
-                    <pre>composer config --global --auth http-basic.{{ url('organization_repo_url', {organization: organization.alias}, true) | trim('/') }} token {{ block('token') }}</pre>
-                </div>
-                {{ block('repositories') }}
-                <p>
-                    You can also use the <code>COMPOSER_AUTH</code> environment variable to authenticate Composer:
-                </p>
-                <pre>COMPOSER_AUTH={"http-basic": {"{{ url('organization_repo_url', {organization: organization.alias}, true) | trim('/') }}": {"username": "token", "password": "{{ block('token') }}"}}}</pre>
-            {% else %}
+    {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}
+        {% if tokenCount > 0 %}
+            <p>Configure global authentication to access this organization's packages:</p>
+            <pre class="mb-3">composer config --global --auth http-basic.{{ url('organization_repo_url', {organization: organization.alias}, true) | trim('/') }} token {{ block('token') }}</pre>
+            {{ block('repositories') }}
+            <p>
+                You can also use the <code>COMPOSER_AUTH</code> environment variable to authenticate Composer:
+            </p>
+            <pre>COMPOSER_AUTH={"http-basic": {"{{ url('organization_repo_url', {organization: organization.alias}, true) | trim('/') }}": {"username": "token", "password": "{{ block('token') }}"}}}</pre>
+        {% else %}
+            <p>
                 Missing authentication tokens,
                 <a class="btn btn-primary" href="{{ path('organization_token_new', {organization: organization.alias}) }}">
                     generate new token
                 </a> to allow users to access your organization packages
-            {% endif %}
-        {% else %}
-            {{ block('repositories') }}
+            </p>
         {% endif %}
-    </div>
+    {% else %}
+        {{ block('repositories') }}
+    {% endif %}
 {% endblock %}

@@ -42,7 +42,7 @@ final class ResetPasswordType extends AbstractType
                     ]),
                 ],
             ])
-            ->add('change', SubmitType::class, ['label' => 'Change password', 'attr' => ['class' => 'btn-primary btn-block']])
+            ->add('change', SubmitType::class, ['label' => 'Change password', 'attr' => ['class' => 'btn-primary w-full']])
         ;
     }
 }

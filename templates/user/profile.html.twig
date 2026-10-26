@@ -6,100 +6,63 @@
 
 {% if not app.user.isEmailConfirmed %}
     <h3>Verify your email address</h3>
-    <div class="row">
-        <div class="col-6">
-            <p>Please click the activation link for <strong>{{ app.user.email }}</strong> to verify your email.</p>
-        </div>
-        <div class="col-3 text-right">
-            <button
-                    class="btn btn-warning"
-                    type="button"
-                    data-target="confirmation"
-                    data-action="{{ url('user_resend_verification') }}"
-                    data-method="POST"
-            >
-                Resend verification email
-            </button>
-        </div>
+    <div class="flex max-w-3xl flex-wrap items-start justify-between gap-3">
+        <p>Please click the activation link for <strong>{{ app.user.email }}</strong> to verify your email.</p>
+        <button class="btn btn-warning" type="button"
+                data-confirm-action="{{ url('user_resend_verification') }}" data-confirm-method="POST">
+            Resend verification email
+        </button>
     </div>
-    <hr/>
 {% else %}
     <h3>Email preferences</h3>
-    <div class="row">
-        <div class="col-md-6 col-lg-4">
-            {{ form(emailPreferencesForm) }}
-        </div>
+    <div class="max-w-md">
+        {{ form(emailPreferencesForm) }}
     </div>
-    <hr/>
 {% endif %}
+<hr/>
 
 <h3>OAuth</h3>
-{% if oauthTokens is empty %}
-    <div class="row">
-        <div class="col">No linked accounts.</div>
-    </div>
-{% endif %}
 {% for token in oauthTokens %}
-    <div class="row">
-        <div class="col-6">
-            <p>
-                Linked to <strong>{{ token.type|capitalize }}</strong>
-                <span data-toggle="tooltip" title="{{ token.createdAt|date_time}} {{ gmt_offset() }}">
-                    {{ token.createdAt|date_time|time_diff}}.
-                </span>
-            </p>
-        </div>
-        <div class="col-3 text-right">
-            <button
-                    class="btn btn-danger"
-                    type="button"
-                    data-target="confirmation"
-                    data-action="{{ url('user_remove_oauth_token', {"type": token.type}) }}"
-                    data-method="DELETE"
-            >
-                Unlink {{ token.type|capitalize }}
-            </button>
-        </div>
+    <div class="mb-3 flex max-w-3xl flex-wrap items-center justify-between gap-3">
+        <p class="m-0">
+            Linked to <strong>{{ token.type|capitalize }}</strong>
+            <span title="{{ token.createdAt|date_time}} {{ gmt_offset() }}">
+                {{ token.createdAt|date_time|time_diff}}.
+            </span>
+        </p>
+        <button class="btn btn-danger" type="button"
+                data-confirm-action="{{ url('user_remove_oauth_token', {"type": token.type}) }}" data-confirm-method="DELETE">
+            Unlink {{ token.type|capitalize }}
+        </button>
     </div>
+{% else %}
+    <p>No linked accounts.</p>
 {% endfor %}
 <hr/>
 
 <h3>Change password</h3>
-<div class="row">
-    <div class="col-md-6 col-lg-4">
-        {{ form(passwordForm) }}
-        <a href="{{ path('app_send_reset_password_link') }}" class="float-right" style="margin-top: -2em;">I forgot my password</a>
-    </div>
+<div class="max-w-md">
+    {{ form(passwordForm) }}
+    <a href="{{ path('app_send_reset_password_link') }}">I forgot my password</a>
 </div>
 
 <hr/>
 
 <h3>Change timezone</h3>
-<div class="row">
-    <div class="col-md-6 col-lg-4">
-        {{ form(timezoneForm) }}
-    </div>
+<div class="max-w-md">
+    {{ form(timezoneForm) }}
 </div>
 
 <hr/>
 
 <h3>Delete Account</h3>
-<div class="row">
-    <div class="col-6">
-        <p>
-            This action is irreversible. Your membership in all organizations ({{ app.user.organizations | length }}) will be removed. If you are the last owner of an organization, access to it will be lost.
-        </p>
-    </div>
-    <div class="col-3 text-right">
-        <button
-            class="btn btn-danger"
-            type="button"
-            data-target="confirmation"
-            data-action="{{ url('user_remove') }}"
-            data-method="DELETE"
-        >
-            Delete Account
-        </button>
-    </div>
+<div class="flex max-w-3xl flex-wrap items-start justify-between gap-3">
+    <p class="max-w-xl">
+        This action is irreversible. Your membership in all organizations ({{ app.user.organizations | length }}) will be removed. If you are the last owner of an organization, access to it will be lost.
+    </p>
+    <button class="btn btn-danger" type="button"
+        data-confirm-action="{{ url('user_remove') }}" data-confirm-method="DELETE">
+        Delete Account
+    </button>
 </div>
 {% endblock %}

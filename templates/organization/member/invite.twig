@@ -3,17 +3,11 @@
 {% block header %}Invite a new member{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <p>
-            See documentation for {% include 'component/docsLink.html.twig' with {'text': 'members and permissions', 'article': 'organization#members-and-permissions'} %}.
-        </p>
-    </div>
-</div>
+<p>
+    See documentation for {% include 'component/docsLink.html.twig' with {'text': 'members and permissions', 'article': 'organization#members-and-permissions'} %}.
+</p>
 
-<div class="row">
-    <div class="col-md-6 col-lg-4">
-        {{ form(form) }}
-    </div>
+<div class="max-w-md">
+    {{ form(form) }}
 </div>
 {% endblock %}

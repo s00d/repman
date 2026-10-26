@@ -1,0 +1,24 @@
+{# route_prefix: 'auth' (login) or 'register' #}
+<div class="flex flex-wrap justify-center gap-2">
+    {% if oauth_enabled('github') %}
+        <a href="{{ url(route_prefix ~ '_github_start') }}" class="btn btn-dark btn-sm">
+            {% include 'svg/github-icon.svg' %} GitHub
+        </a>
+    {% endif %}
+    {% if oauth_enabled('gitlab') %}
+        <a href="{{ url(route_prefix ~ '_gitlab_start') }}" class="btn btn-sm bg-orange-600 text-white hover:bg-orange-700 hover:text-white">
+            {% include 'svg/gitlab-icon.svg' %} GitLab
+        </a>
+    {% endif %}
+    {% if oauth_enabled('bitbucket') %}
+        <a href="{{ url(route_prefix ~ '_bitbucket_start') }}" class="btn btn-sm bg-blue-700 text-white hover:bg-blue-800 hover:text-white">
+            {% include 'svg/bitbucket-icon.svg' %} Bitbucket
+        </a>
+    {% endif %}
+    {% if oauth_enabled('buddy') %}
+        <a href="{{ url(route_prefix ~ '_buddy_start') }}" class="btn btn-dark btn-sm">
+            <img alt="" src="https://app.buddy.works/icons/favicon.png" class="size-4" />
+            Buddy
+        </a>
+    {% endif %}
+</div>

@@ -23,8 +23,13 @@ final class PaginationTest extends IntegrationTestCase
             'path_name' => 'admin_user_list',
         ]);
 
-        preg_match_all('{<(?:a|span) class="page-link"[^>]*>([^<]+)</(?:a|span)>}', $html, $matches);
+        preg_match('{<nav class="pagination[^>]*>(.*?)</nav>}s', $html, $nav);
+        preg_match_all('{<(?:a|span)\b[^>]*>([^<]+)</(?:a|span)>}', $nav[1] ?? '', $matches);
         self::assertSame($expectedLinks, $matches[1]);
+        if ($expectedLinks !== []) {
+            preg_match('{aria-current="page"[^>]*>([^<]+)<}', $html, $current);
+            self::assertSame((string) ($offset / 20 + 1), $current[1] ?? null);
+        }
     }
 
     /**

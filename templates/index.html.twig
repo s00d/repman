@@ -1,32 +1,27 @@
 {% extends "base.html.twig" %}
 
 {% block page %}
-<div class="content-page">
-    <main class="container my-4 flex-fill">
-        {% include 'component/flash.html.twig' %}
+<main class="mx-auto max-w-7xl px-4 py-6">
+    {% include 'component/flash.html.twig' %}
 
-        {% if is_granted('ROLE_ADMIN') and showTelemetryPrompt %}
-            {% include 'component/telemetryPrompt.html.twig' %}
-        {% endif %}
+    {% if is_granted('ROLE_ADMIN') and showTelemetryPrompt %}
+        {% include 'component/telemetryPrompt.html.twig' %}
+    {% endif %}
 
-        <div class="row justify-content-center">
-            <div class="col-lg-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title flex-grow-1">Proxy</h3>
-                    </div>
-                    <div class="card-body">
-                        <p>
-                            Repman works as a proxy for packagist.org, speeding up your local builds. To speed up your build, use this Composer plugin:
-                        </p>
-                        <div class="highlight">
-                            <pre>composer global require repman-io/composer-plugin</pre>
-                        </div>
+    <div class="grid gap-6 lg:grid-cols-2">
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">Proxy</h2>
+            </div>
+            <div class="card-body">
+                <p>
+                    Repman works as a proxy for packagist.org, speeding up your local builds. To speed up your build, use this Composer plugin:
+                </p>
+                <pre class="mb-3">composer global require repman-io/composer-plugin</pre>
 
-                        <p>You can also add these lines to your composer.json file:</p>
+                <p>You can also add these lines to your composer.json file:</p>
 
-                        <div class="highlight">
-<pre>
+<pre class="mb-3">
 {
     "repositories": [
         {"type": "composer", "url": "{{ url('proxy_repo_url') | trim('/') }}"},
@@ -34,41 +29,34 @@
     ]
 }
 </pre>
-                        </div>
-                        <p>The last step is updating composer.lock:</p>
-                        <div class="highlight">
-                            <pre>composer update --lock</pre>
-                        </div>
-                    </div>
-                </div>
+                <p>The last step is updating composer.lock:</p>
+                <pre>composer update --lock</pre>
             </div>
-            <div class="col-lg-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title flex-grow-1">Organizations</h3>
-                    </div>
-                    <div class="card-body">
-                        <p>
-                            Organizations allow you to manage your private packages and the access to them.
-                        </p>
-                        {% if not app.user.belongsToAnyOrganization %}
-                            <a href="{{ path('organization_create') }}" class="btn btn-green">Create a new organization</a>
-                        {% else %}
-                            <ul>
-                            {% for org in app.user.organizations %}
-                                <li><a href="{{ url('organization_overview', {"organization": org.alias}) }}">
-                                    {{ org.name }}
-                                </a></li>
-                            {% endfor %}
-                            </ul>
-                            <p>
-                                <a href="{{ path('organization_create') }}">Create a new organization</a>
-                            </p>
-                        {% endif %}
-                    </div>
-                </div>
+        </section>
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">Organizations</h2>
             </div>
-        </div>
-    </main>
-</div>
+            <div class="card-body">
+                <p>
+                    Organizations allow you to manage your private packages and the access to them.
+                </p>
+                {% if not app.user.belongsToAnyOrganization %}
+                    <a href="{{ path('organization_create') }}" class="btn btn-success">Create a new organization</a>
+                {% else %}
+                    <ul class="mb-3 list-disc pl-6">
+                    {% for org in app.user.organizations %}
+                        <li><a href="{{ url('organization_overview', {"organization": org.alias}) }}">
+                            {{ org.name }}
+                        </a></li>
+                    {% endfor %}
+                    </ul>
+                    <p>
+                        <a href="{{ path('organization_create') }}">Create a new organization</a>
+                    </p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</main>
 {% endblock page %}

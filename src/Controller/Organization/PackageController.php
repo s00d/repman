@@ -166,12 +166,7 @@ final class PackageController extends AbstractController
             'label' => false,
             'expanded' => false,
             'multiple' => true,
-            'attr' => [
-                'class' => 'form-control selectpicker',
-                'data-live-search' => 'true',
-                'data-style' => 'btn-secondary',
-                'title' => 'select repository',
-            ],
+            'attr' => ['data-search-select' => true, 'title' => 'select repository'],
         ]);
     }
 

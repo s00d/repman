@@ -7,6 +7,8 @@ parameters:
     security_advisories_db_dir: '%kernel.project_dir%/tests/Resources/fixtures/security/security-advisories'
     security_advisories_db_repo: 'bogus'
     instance_id_file: '%kernel.cache_dir%/test-instance-id'
+    # functional tests render templates without a frontend build
+    vite_manifest: '%kernel.project_dir%/tests/Resources/vite/manifest.json'
 
 services:
     Buddy\Repman\Service\Downloader:

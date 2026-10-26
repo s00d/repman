@@ -22,6 +22,7 @@ services:
 
   # each service starts as root only to hand var/ (a bind mount, possibly written by an older
   # version as root) to www-data, then runs as www-data; php-fpm's workers run as www-data.
+  # public/ is the checkout's, served by nginx: app puts the frontend build of its image there.
   # var/cache is an anonymous volume, which `up --build` keeps across image updates: every
   # service rebuilds its cache on start so it never runs new code with an old container.
   app:
@@ -30,6 +31,8 @@ services:
       net.core.somaxconn: 2048
     command: >
       bash -c 'chown -R www-data:www-data var &&
+      mkdir -p public/bundles && chown -R www-data:www-data public/bundles &&
+      rm -rf public/build && cp -a /opt/repman/build public/build &&
       su-exec www-data bin/console cache:clear &&
       su-exec www-data bin/console d:m:m --no-interaction &&
       su-exec www-data bin/console messenger:setup-transports --no-interaction &&

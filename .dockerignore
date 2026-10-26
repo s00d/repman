@@ -36,3 +36,4 @@
 ###> OS ###
 .DS_Store
 ###< OS ###
+/public/build

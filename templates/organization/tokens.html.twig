@@ -8,69 +8,10 @@
 {% block header %} {{ organization.name }} tokens:{% endblock %}
 
 {% block content %}
-
-<div class="markdown">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Created</th>
-                <th>Last used</th>
-                <th>Value</th>
-                <th>Options</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for token in tokens %}
-                <tr>
-                    <td>{{ token.name }}</td>
-                    <td>
-                        <span data-toggle="tooltip" title="{{ token.createdAt|date_time }} {{ gmt_offset() }}">
-                            {{ token.createdAt|date_time|time_diff }}
-                        </span>
-                    </td>
-                    <td>
-                        <span data-toggle="tooltip" title="{% if token.lastUsedAt %}{{ token.lastUsedAt|date_time }} {{ gmt_offset() }}{% endif %}">
-                            {{ token.lastUsedAt ? token.lastUsedAt|date_time|time_diff : 'never' }}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-primary btn-sm show-token">
-                            Show token
-                        </button>
-                        <div class="input-group d-none" data-type="token">
-                            <input id="token{{ loop.index }}" type="text" class="form-control" readonly value="{{ token.value }}">
-                            <span class="input-group-append">
-                                <button data-clipboard-target="#token{{ loop.index }}" class="copy-to-clipboard btn btn-primary p-2" type="button" data-toggle="tooltip" title="Copy to clipboard">
-                                    {% include 'svg/clipboard.svg' %}
-                                </button>
-                            </span>
-                        </div>
-                    </td>
-                    <td>
-                        <button
-                            class="btn btn-warning btn-sm"
-                            type="button"
-                            data-target="confirmation"
-                            data-action="{{ path('organization_token_regenerate', {organization: organization.alias, token: token.value}) }}"
-                            data-method="POST"
-                        >
-                            Regenerate
-                        </button>
-                        <button
-                            class="btn btn-danger btn-sm"
-                            type="submit"
-                            data-target="confirmation"
-                            data-action="{{ path('organization_token_remove', {organization: organization.alias, token: token.value}) }}"
-                            data-method="DELETE"
-                        >
-                            Remove
-                        </button>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% include 'component/tokenTable.html.twig' with {
+        regenerate_route: 'organization_token_regenerate',
+        remove_route: 'organization_token_remove',
+        route_params: {organization: organization.alias},
+    } %}
     {% include 'component/pagination.html.twig' with {'path_name': 'organization_tokens', 'path_params': {'organization': organization.alias}} %}
-</div>
 {% endblock %}

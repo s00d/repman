@@ -9,10 +9,10 @@
         {% endfor %}
     {% else %}
         {% if lockFileResult is not empty %}
-            <div class="small text-muted">{{ lockFile }}</div>
+            <div class="text-xs text-slate-500">{{ lockFile }}</div>
             {% for dependencyName, dependency in lockFileResult %}
                 <b>{{ dependencyName }}</b> ({{ dependency.version }})
-                <ul>
+                <ul class="mb-2 list-disc pl-5">
                     {% for advisor in dependency.advisories %}
                         <li>
                             {{ advisor.title }}<br>
@@ -20,11 +20,7 @@
                                 <b>{{ advisor.cve }}</b><br>
                             {% endif %}
                             {% if advisor.link is not empty and not simple %}
-                                <a
-                                    href="{{ advisor.link }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer nofollow"
-                                >
+                                <a href="{{ advisor.link }}" target="_blank" rel="noopener noreferrer nofollow" class="break-all">
                                     {{ advisor.link }}
                                 </a>
                             {% endif %}

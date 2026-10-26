@@ -42,10 +42,6 @@ class ConfigType extends AbstractType
                     'allow login, disable registration' => 'login_only',
                     'disabled' => 'disabled',
                 ],
-                'attr' => [
-                    'class' => 'form-control selectpicker',
-                    'data-style' => 'btn-secondary',
-                ],
             ])
             ->add('oauth_registration', ChoiceType::class, [
                 'choices' => [
@@ -54,10 +50,6 @@ class ConfigType extends AbstractType
                 ],
                 'label' => 'OAuth registration',
                 'help' => 'Note: login with OAuth can be set using the OAUTH_* environment variables',
-                'attr' => [
-                    'class' => 'form-control selectpicker',
-                    'data-style' => 'btn-secondary',
-                ],
             ])
             ->add(Config::TELEMETRY, ChoiceType::class, [
                 'choices' => [
@@ -65,10 +57,7 @@ class ConfigType extends AbstractType
                     Config::TELEMETRY_DISABLED => Config::TELEMETRY_DISABLED,
                 ],
                 'help' => "Enable collecting and sending anonymous usage data (<a href=\"{$this->telemetry->docsUrl()}\" target=\"_blank\" rel=\"noopener noreferrer\">more info</a>)",
-                'attr' => [
-                    'class' => 'form-control selectpicker',
-                    'data-style' => 'btn-secondary',
-                ],
+                'help_html' => true,
             ])
             ->add('technical_email', EmailType::class, [
                 'required' => false,

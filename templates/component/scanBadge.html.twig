@@ -1,0 +1,19 @@
+{% if package.isEnabledSecurityScan %}
+    <span class="hovercard">
+        <a href="{{ path('organization_package_scan_results', {organization: organization.alias, package: package.id}) }}"
+           class="no-underline hover:no-underline" title="{{ package.scanResultDate|date_time|time_diff }}">
+            {% if package.isScanResultOk %}
+                <span class="badge badge-success">{{ package.scanResultStatus }}</span>
+            {% elseif package.isScanResultPending or package.isScanResultNotAvailable %}
+                <span class="badge badge-warning">{{ package.scanResultStatus }}</span>
+            {% else %}
+                <span class="badge badge-danger">{{ package.scanResultStatus }}</span>
+            {% endif %}
+        </a>
+        <span class="hovercard-body" role="tooltip">
+            {% include 'organization/package/scanResultContent.html.twig' with {'result': package.lastScanResultContent, 'simple': true} %}
+        </span>
+    </span>
+{% else %}
+    <span class="badge badge-info">Disabled</span>
+{% endif %}

@@ -40,10 +40,6 @@ final class InviteMemberType extends AbstractType
                 'constraints' => [
                     new NotNull(),
                 ],
-                'attr' => [
-                    'class' => 'form-control selectpicker',
-                    'data-style' => 'btn-secondary',
-                ],
             ])
             ->add('invite', SubmitType::class)
         ;

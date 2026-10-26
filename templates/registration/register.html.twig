@@ -4,44 +4,17 @@
 
 {% block card %}
     <div class="card">
-        <div class="card-body p-6">
+        <div class="card-body">
 
             {% include 'component/flash.html.twig' %}
 
-            <div class="card-title text-center">Sign up for free</div>
+            <h1 class="mb-5 text-center text-lg font-semibold">Sign up for free</h1>
 
             {% if oauthRegistrationEnabled and oauth_enabled() %}
-                <div class="text-center">
-                    {% if oauth_enabled('github') %}
-                        <a href="{{ url('register_github_start') }}" class="btn btn-github btn-sm">
-                            {% include 'svg/github-icon.svg' %} GitHub
-                        </a>
-                    {% endif %}
-
-                    {% if oauth_enabled('gitlab') %}
-                        <a href="{{ url('register_gitlab_start') }}" class="btn btn-orange btn-sm">
-                            {% include 'svg/gitlab-icon.svg' %} GitLab
-                        </a>
-                    {% endif %}
-
-                    {% if oauth_enabled('bitbucket') %}
-                        <a href="{{ url('register_bitbucket_start') }}" class="btn btn-bitbucket btn-sm">
-                            {% include 'svg/bitbucket-icon.svg' %} Bitbucket
-                        </a>
-                    {% endif %}
-
-                    {% if oauth_enabled('bitbucket') %}
-                        <a href="{{ url('register_buddy_start') }}" class="btn btn-dark btn-sm">
-                            <img src="https://app.buddy.works/icons/favicon.png" class="icon" />
-                            Buddy
-                        </a>
-                    {% endif %}
-                </div>
-
-                <hr />
+                {% include 'component/oauthButtons.html.twig' with {route_prefix: 'register'} %}
 
                 {% if localRegistrationEnabled %}
-                    <div class="text-center"><small>or sign up with e-mail</small></div>
+                    <p class="my-4 flex items-center gap-3 text-xs text-slate-500 before:h-px before:flex-1 before:bg-slate-200 after:h-px after:flex-1 after:bg-slate-200">or sign up with e-mail</p>
                 {% endif %}
             {% endif %}
 
@@ -49,12 +22,12 @@
                 {{ form(registrationForm) }}
             {% endif %}
 
-            <div class="text-center mt-5">
-                <small>By creating an account you agree to our <a href="https://repman.io/terms-of-service/" target="_blank" rel="noopener noreferrer">Terms & Conditions</a>.</small>
-            </div>
+            <p class="mt-5 mb-0 text-center text-xs text-slate-500">
+                By creating an account you agree to our <a href="https://repman.io/terms-of-service/" target="_blank" rel="noopener noreferrer">Terms & Conditions</a>.
+            </p>
         </div>
     </div>
-    <div class="text-center text-muted">
+    <p class="mt-4 text-center text-slate-500">
         Already have an account? <a href="{{ url('app_login') }}">Sign in</a>
-    </div>
+    </p>
 {% endblock %}

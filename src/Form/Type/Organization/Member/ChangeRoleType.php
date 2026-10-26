@@ -33,10 +33,6 @@ final class ChangeRoleType extends AbstractType
                 'constraints' => [
                     new NotNull(),
                 ],
-                'attr' => [
-                    'class' => 'form-control selectpicker',
-                    'data-style' => 'btn-secondary',
-                ],
             ])
             ->add('change', SubmitType::class, [
                 'label' => 'Change role',

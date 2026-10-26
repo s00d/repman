@@ -1,98 +1,97 @@
 {% macro anonymousIcon(subject) %}
     {% if subject.hasAnonymousAccess %}
-        <span data-toggle="tooltip" data-placement="bottom" title="Organization with anonymous access">
+        <span title="Organization with anonymous access">
             {% include 'svg/unlock.svg' %}
+            <span class="sr-only">(anonymous access)</span>
         </span>
     {% endif %}
 {% endmacro %}
 
 {% import _self as icons %}
 
+{% set caret %}<svg class="icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd"/></svg>{% endset %}
+
 {% if app.user %}
     {% if app.user.belongsToAnyOrganization %}
-        <div class="dropdown">
-            <a href="#" data-toggle="dropdown"
-               class="align-items-center ml-2 btn btn-secondary">
-                <span class="d-none d-sm-block lh-1">
+        <div class="dropdown" data-dropdown>
+            <button type="button" class="btn btn-secondary" data-dropdown-toggle>
+                <span class="hidden items-center gap-1 sm:inline-flex">
                     {% if organization is defined %}
                         {{ icons.anonymousIcon(organization) }} {{ organization.name }}
                     {% else %}
                         Select organization
                     {% endif %}
                 </span>
-                <span class="ml-2 d-block d-sm-none">
-                    {% include 'svg/briefcase.svg' %}
-                </span>
-            </a>
-            <div class="dropdown-menu dropdown-menu-arrow">
+                <span class="sm:hidden" aria-label="Organizations">{% include 'svg/briefcase.svg' %}</span>
+                {{ caret }}
+            </button>
+            <div class="dropdown-menu" data-dropdown-menu role="menu">
                 {% for org in app.user.organizations %}
-                    <a class="dropdown-item" href="{{ url('organization_overview', {"organization": org.alias}) }}">
+                    <a class="dropdown-item" role="menuitem" href="{{ url('organization_overview', {"organization": org.alias}) }}">
                         {{ icons.anonymousIcon(org) }} {{ org.name }}
                     </a>
                 {% endfor %}
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item btn" href="{{ url('organization_create')}}">
+                <div class="dropdown-divider" role="separator"></div>
+                <a class="dropdown-item" role="menuitem" href="{{ url('organization_create')}}">
                     {% include 'svg/plus-square.svg' %} Create a new organization
                 </a>
             </div>
         </div>
     {% endif %}
-    <ul class="nav navbar-menu align-items-center ml-auto">
-        <li class="nav-item dropdown">
-
-                <a href="#" data-toggle="dropdown"
-                   class="nav-link d-flex align-items-center py-0 px-lg-0 px-2 text-reset ml-2">
-                    <span class="avatar avatar-sm">
-                        {% include 'svg/user.svg' %}
-                    </span>
-                    <span class="ml-2 d-none d-lg-block lh-1">
-                        {{ app.user.userIdentifier }}
-                        {% if is_granted('ROLE_ADMIN') %}
-                            <span class="text-muted d-block mt-1 text-h6">Administrator</span>
-                        {% endif %}
-                    </span>
+    <div class="dropdown ml-auto" data-dropdown data-dropdown-align="end">
+        <button type="button" class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-left hover:bg-slate-100" data-dropdown-toggle>
+            <span class="flex size-8 items-center justify-center rounded-full bg-slate-200 text-slate-600">
+                {% include 'svg/user.svg' %}
+            </span>
+            <span class="hidden leading-tight lg:block">
+                {{ app.user.userIdentifier }}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <span class="block text-xs text-slate-500">Administrator</span>
+                {% endif %}
+            </span>
+            {{ caret }}
+        </button>
+        <div class="dropdown-menu" data-dropdown-menu role="menu">
+            {% if is_granted('ROLE_ADMIN') %}
+                <a class="dropdown-item" role="menuitem" href="{{ url('admin_dist_list', {proxy: 'packagist.org'})}}">
+                    {% include 'svg/package.svg' %} Proxy packages
                 </a>
-                <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a class="dropdown-item" href="{{ url('admin_dist_list', {proxy: 'packagist.org'})}}">
-                            {% include 'svg/package.svg' %} Proxy packages
-                        </a>
-                        <a class="dropdown-item" href="{{ url('admin_proxy_stats')}}">
-                            {% include 'svg/bar-chart.svg' %} Proxy statistics
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{{ url('admin_organization_list')}}">
-                            {% include 'svg/briefcase.svg' %} Organizations
-                        </a>
-                        <a class="dropdown-item" href="{{ url('admin_user_list')}}">
-                            {% include 'svg/users.svg' %} Users
-                        </a>
-                        <a class="dropdown-item" href="{{ url('admin_stats')}}">
-                            {% include 'svg/bar-chart.svg' %} Statistics
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{{ url('admin_config')}}">
-                            {% include 'svg/sliders.svg' %} Configuration
-                        </a>
-                        <div class="dropdown-divider"></div>
-                    {% endif %}
-                    <a class="dropdown-item" href="{{ url('user_profile') }}">
-                        {% include 'svg/user.svg' %} Profile
-                    </a>
-                    <a class="dropdown-item" href="{{ url('user_api_tokens') }}">
-                        {% include 'svg/lock.svg' %} API tokens
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="{{ url('app_logout') }}">
-                        {% include 'svg/log-out.svg' %} Sign out
-                    </a>
-                </div>
-
-        </li>
-    </ul>
+                <a class="dropdown-item" role="menuitem" href="{{ url('admin_proxy_stats')}}">
+                    {% include 'svg/bar-chart.svg' %} Proxy statistics
+                </a>
+                <div class="dropdown-divider" role="separator"></div>
+                <a class="dropdown-item" role="menuitem" href="{{ url('admin_organization_list')}}">
+                    {% include 'svg/briefcase.svg' %} Organizations
+                </a>
+                <a class="dropdown-item" role="menuitem" href="{{ url('admin_user_list')}}">
+                    {% include 'svg/users.svg' %} Users
+                </a>
+                <a class="dropdown-item" role="menuitem" href="{{ url('admin_stats')}}">
+                    {% include 'svg/bar-chart.svg' %} Statistics
+                </a>
+                <div class="dropdown-divider" role="separator"></div>
+                <a class="dropdown-item" role="menuitem" href="{{ url('admin_config')}}">
+                    {% include 'svg/sliders.svg' %} Configuration
+                </a>
+                <div class="dropdown-divider" role="separator"></div>
+            {% endif %}
+            <a class="dropdown-item" role="menuitem" href="{{ url('user_profile') }}">
+                {% include 'svg/user.svg' %} Profile
+            </a>
+            <a class="dropdown-item" role="menuitem" href="{{ url('user_api_tokens') }}">
+                {% include 'svg/lock.svg' %} API tokens
+            </a>
+            <div class="dropdown-divider" role="separator"></div>
+            <a class="dropdown-item" role="menuitem" href="{{ url('app_logout') }}">
+                {% include 'svg/log-out.svg' %} Sign out
+            </a>
+        </div>
+    </div>
 {% else %}
-    <div class="ml-auto">
+    <div class="ml-auto flex gap-2">
         <a href="{{ url('app_login') }}" class="btn btn-secondary">Login</a>
-        <a href="{{ url('app_register') }}" class="btn btn-info">Register</a>
+        {% if config.userRegistrationEnabled %}
+            <a href="{{ url('app_register') }}" class="btn btn-info">Register</a>
+        {% endif %}
     </div>
 {% endif %}

@@ -1,0 +1,9 @@
+{
+  "_vue.js": { "file": "assets/vue-test.js" },
+  "assets/app.ts": {
+    "file": "assets/app-test.js",
+    "isEntry": true,
+    "imports": ["_vue.js", "_missing.js"],
+    "css": ["assets/app-test.css"]
+  }
+}

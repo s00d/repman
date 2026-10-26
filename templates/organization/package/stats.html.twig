@@ -1,12 +1,7 @@
 {% extends 'organization/stats.html.twig' %}
 
 {% block header %}
-    <a href="{{ path('organization_packages', {"organization":organization.alias}) }}"
-       class="btn btn-secondary px-1 mr-1" title="Package List">
-        <span class="text-muted mr-1">&laquo;</span>
-        {% include 'svg/package.svg' %}
-    </a>
-
+    {% include 'component/backToPackages.html.twig' %}
     <a href="{{ path('organization_package_details', {organization: organization.alias, package: package.id}) }}">{{ package.name }}</a>
     installs (last {{ days }} days)
 {% endblock %}
@@ -18,15 +13,15 @@
 
 {% block content %}
     <h3>Daily installs</h3>
-    <div id="chart-installs" ></div>
+    {{ block('installs_chart') }}
 
     <hr />
 
     <h3>Summary</h3>
-    <p>
-        <span class="mr-5">Today installs: <span class="number-format">{{ (installs.days | last).installs }}</span></span>
-        <span class="mr-5">Last {{ days ?? 30 }} days installs: <span class="number-format">{{ installs.daysTotal }}</span></span>
-        <span class="mr-5"><strong>Total installs: <span class="number-format">{{ installs.total }}</span></strong></span>
+    <p class="flex flex-wrap gap-x-10">
+        <span>Today installs: {{ (installs.days | last).installs|number_format }}</span>
+        <span>Last {{ days }} days installs: {{ installs.daysTotal|number_format }}</span>
+        <strong>Total installs: {{ installs.total|number_format }}</strong>
     </p>
 
     <hr />
@@ -36,22 +31,17 @@
     {% if versions is empty %}
         <p>currently no data available</p>
     {% else %}
-    <div class="row">
-        <div class="col-2">
-            <p>Versions</p>
-            {% for version in versions %}
-                <a href="#" class="package-version">{{ version }}</a><br />
-            {% endfor %}
+        <div data-vue="VersionInstallsChart" data-props="{{ {
+            versions: versions|map(version => {
+                version: version,
+                url: path('organization_package_version_stats', {organization: organization.alias, package: package.id, version: version, days: days}),
+            }),
+        }|json_encode }}">
+            <ul class="list-disc pl-5">
+                {% for version in versions %}
+                    <li>{{ version }}</li>
+                {% endfor %}
+            </ul>
         </div>
-        <div class="col-10">
-            <div id="chart-installs-versions" ></div>
-        </div>
-    </div>
     {% endif %}
-{% endblock %}
-
-{% block javascripts %}
-    <script type="text/javascript" src="{{ asset('dist/js/apexcharts.min.js') }}"></script>
-    {% include 'component/js/stats.js.twig' %}
-    {% include 'component/js/statsVersions.js.twig' %}
 {% endblock %}

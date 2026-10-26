@@ -10,35 +10,31 @@
 {% block header %} {{ organization.name }} packages:{% endblock %}
 
 {% block content %}
+<form action="{{ path('organization_packages', {organization: organization.alias}) }}" method="get" class="mb-4 flex flex-wrap items-center gap-3">
+    <label for="package-search">Search:</label>
+    <input type="search" id="package-search" name="search" value="{{ filter.searchTerm }}" class="form-control w-64" />
 
-<div class="markdown">
+    <label class="ml-auto flex items-center gap-2">
+        Show
+        <input type="number" name="limit" value="{{ filter.limit }}" class="form-control w-20" min="1" />
+        entries
+    </label>
+
+    <button class="btn btn-secondary btn-sm">Filter</button>
+</form>
+
+<div class="table-wrap">
     <table class="table">
         <thead>
-            <tr>
-                <td colspan="7">
-                    <form action="{{ path('organization_packages', {organization: organization.alias}) }}" method="get" class="form-inline">
-                        <label for="package-search" class="mr-2">Search:</label>
-                        <input type="search" id="package-search" name="search" value="{{ filter.searchTerm }}" class="form-control" />
-
-                        <label class="ml-auto text-right">
-                            Show
-                            <input type="number" name="limit" value="{{ filter.limit }}" class="form-control w-25 mx-2" min="1" />
-                            entries
-                        </label>
-
-                        <button class="btn btn-outline-primary btn-sm">Filter</button>
-                    </form>
-                </td>
-            </tr>
             <tr>
                 <th>Name {% include 'component/sort.html.twig' with {column: 'name'} %}</th>
                 <th>Latest version {% include 'component/sort.html.twig' with {column: 'version'} %}</th>
                 <th>Released {% include 'component/sort.html.twig' with {column: 'date'} %}</th>
                 <th>Description</th>
                 {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}
-                    <th>Webhook</th>
-                    <th>Security</th>
-                    <th></th>
+                    <th class="text-center">Webhook</th>
+                    <th class="text-center">Security</th>
+                    <th><span class="sr-only">Actions</span></th>
                 {% endif %}
             </tr>
         </thead>
@@ -47,35 +43,31 @@
                 <tr>
                     <td>
                         {% if package.name %}
-                            <strong>
-                                <a href="{{ path('organization_package_details', {organization: organization.alias, package: package.id}) }}">
-                                    {{ package.name }}
-                                </a>
-                            </strong><br />
-                            <small class="font-italic" style="font-size: 0.7em"><a href="{{ package.url }}" target="_blank" rel="nofollow noopener noreferrer">
+                            <a class="font-semibold" href="{{ path('organization_package_details', {organization: organization.alias, package: package.id}) }}">
+                                {{ package.name }}
+                            </a>
+                            <a class="block max-w-64 truncate text-xs text-slate-500 italic" href="{{ package.url }}" title="{{ package.url }}" target="_blank" rel="nofollow noopener noreferrer">
                                 {{ package.url }}
-                            </a></small><br />
-                            <small class="font-italic" style="font-size: 0.7em" data-toggle="tooltip" title="{{ package.lastSyncAt|date_time }} ({{ gmt_offset() }})">synced: {{ package.lastSyncAt|date_time|time_diff }}</small>
+                            </a>
+                            <span class="block text-xs text-slate-500 italic" title="{{ package.lastSyncAt|date_time }} ({{ gmt_offset() }})">synced: {{ package.lastSyncAt|date_time|time_diff }}</span>
                         {% elseif package.lastSyncError is null %}
                             Synchronizing from <a href="{{ package.url }}" target="_blank" rel="nofollow noopener noreferrer">
                                 {{ package.url }}
                             </a>
-                            <div class="progress progress-sm">
-                                <div class="progress-bar progress-bar-indeterminate"></div>
-                            </div>
+                            <div class="indeterminate mt-2" role="progressbar" aria-label="Synchronizing"></div>
                         {% endif %}
                     </td>
                     <td>{{ package.latestReleasedVersion }}</td>
-                    <td>
+                    <td class="whitespace-nowrap">
                         {% if package.latestReleaseDate %}
-                            <span data-toggle="tooltip" title="{{ package.latestReleaseDate|date_time_utc }} ({{ gmt_offset() }})">{{ package.latestReleaseDate|date_time_utc|time_diff }}</span>
+                            <span title="{{ package.latestReleaseDate|date_time_utc }} ({{ gmt_offset() }})">{{ package.latestReleaseDate|date_time_utc|time_diff }}</span>
                         {% endif %}
                     </td>
                     <td>
                         {% if package.lastSyncError %}
-                            <div class="badge bg-danger">Synchronization error</div>
-                            <small class="font-italic" style="font-size: 0.7em" data-toggle="tooltip" title="{{ package.lastSyncAt|date_time }} ({{ gmt_offset() }})">{{ package.lastSyncAt|date_time|time_diff }}</small>
-                            <div class="highlight p-3 font-monospace" style="font-size: 0.6em;">
+                            <span class="badge badge-danger">Synchronization error</span>
+                            <span class="text-xs text-slate-500 italic" title="{{ package.lastSyncAt|date_time }} ({{ gmt_offset() }})">{{ package.lastSyncAt|date_time|time_diff }}</span>
+                            <div class="mt-1 max-h-40 overflow-auto rounded bg-slate-100 p-2 font-mono text-[0.7rem] break-all">
                                 {{ package.lastSyncError | nl2br }}
                             </div>
                         {% else %}
@@ -85,7 +77,7 @@
                     {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}
                         <td class="text-center">
                             {% if package.webhookCreatedAt is not empty %}
-                                <span class="font-weight-bold" data-toggle="tooltip" title="{{ package.webhookCreatedAt | date_time }} ({{ gmt_offset() }})">
+                                <span class="font-semibold" title="{{ package.webhookCreatedAt | date_time }} ({{ gmt_offset() }})">
                                     created
                                 </span>
                             {% else %}
@@ -93,28 +85,11 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            {% if package.isEnabledSecurityScan %}
-                                {% if package.isSynchronizedSuccessfully %}
-                                    <a
-                                            href="{{ path('organization_package_scan_results', {organization: organization.alias, package: package.id}) }}"
-                                            data-content="{% apply escape %}{% include 'organization/package/scanResultContent.html.twig' with {'result': package.lastScanResultContent, 'simple': true} %}{% endapply %}"
-                                            data-data-toggle="tooltip" title="{{ package.scanResultDate|date_time|time_diff }}"
-                                            data-toggle="scan-result-popover"
-                                    >
-                                        {% if package.isScanResultOk %}
-                                            <span class="badge badge-success">{{ package.scanResultStatus }}</span>
-                                        {% elseif package.isScanResultPending or package.isScanResultNotAvailable %}
-                                            <span class="badge badge-warning">{{ package.scanResultStatus }}</span>
-                                        {% else %}
-                                            <span class="badge badge-danger">{{ package.scanResultStatus }}</span>
-                                        {% endif %}
-                                    </a>
-                                {% endif %}
-                            {% else %}
-                                <span class="badge badge-info">Disabled</span>
+                            {% if not package.isEnabledSecurityScan or package.isSynchronizedSuccessfully %}
+                                {% include 'component/scanBadge.html.twig' %}
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="text-right">
                             {% include 'component/packageActions.html.twig' %}
                         </td>
                     {% endif %}
@@ -126,18 +101,6 @@
             {% endfor %}
         </tbody>
     </table>
-    {% include 'component/pagination.html.twig' with {'path_name': 'organization_packages', 'path_params': {'organization': organization.alias}} %}
 </div>
-{% endblock %}
-
-{% block javascripts %}
-<script>
-    (function() {
-        $('[data-toggle="scan-result-popover"]').popover({
-            trigger: 'hover',
-            placement: 'left',
-            html: true
-        });
-    })();
-</script>
+{% include 'component/pagination.html.twig' with {'path_name': 'organization_packages', 'path_params': {'organization': organization.alias}} %}
 {% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'form_div_layout.html.twig' %}
+
+{# component classes come from assets/styles/app.css #}
+
+{%- block form_widget_simple -%}
+    {%- if type is not defined or type not in ['hidden', 'file'] -%}
+        {%- set attr = attr|merge({class: ('form-control ' ~ attr.class|default(''))|trim}) -%}
+    {%- endif -%}
+    {%- if errors|length > 0 -%}
+        {%- set attr = attr|merge({'aria-invalid': 'true'}) -%}
+    {%- endif -%}
+    {{- parent() -}}
+{%- endblock form_widget_simple -%}
+
+{%- block textarea_widget -%}
+    {%- set attr = attr|merge({class: ('form-control ' ~ attr.class|default(''))|trim}) -%}
+    {{- parent() -}}
+{%- endblock textarea_widget -%}
+
+{%- block choice_widget_collapsed -%}
+    {%- set attr = attr|merge({class: ('form-control ' ~ attr.class|default(''))|trim}) -%}
+    {%- if errors|length > 0 -%}
+        {%- set attr = attr|merge({'aria-invalid': 'true'}) -%}
+    {%- endif -%}
+    {%- if attr['data-search-select'] is defined -%}
+        {# long lists become a searchable combobox (assets/components/SearchSelect.vue); the native
+           select stays as the fallback until the component mounts #}
+        {%- set options = [] -%}
+        {%- for choice in choices -%}
+            {%- set options = options|merge([{
+                value: choice.value,
+                label: choice_translation_domain is same as(false) ? choice.label : choice.label|trans(choice.labelTranslationParameters, choice_translation_domain),
+                disabled: choice.attr.disabled is defined,
+            }]) -%}
+        {%- endfor -%}
+        <div data-vue="SearchSelect" data-props="{{ {
+            id: id,
+            name: full_name,
+            options: options,
+            value: multiple ? value : (value is empty ? [] : [value]),
+            multiple: multiple,
+            required: required,
+            placeholder: attr.title|default(placeholder ?? 'Select...'),
+            invalid: errors|length > 0,
+        }|json_encode }}">
+            {{- parent() -}}
+        </div>
+    {%- else -%}
+        {{- parent() -}}
+    {%- endif -%}
+{%- endblock choice_widget_collapsed -%}
+
+{%- block checkbox_widget -%}
+    <span class="form-check">
+        <input type="checkbox" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
+        {%- if label is not same as(false) -%}
+            <label for="{{ id }}">{{ translation_domain is same as(false) ? label|default(name|humanize) : label|default(name|humanize)|trans(label_translation_parameters, translation_domain) }}</label>
+        {%- endif -%}
+    </span>
+{%- endblock checkbox_widget -%}
+
+{%- block checkbox_row -%}
+    <div class="form-row">
+        {{- form_widget(form) -}}
+        {{- block('form_help') -}}
+        {{- form_errors(form) -}}
+    </div>
+{%- endblock checkbox_row -%}
+
+{%- block form_label -%}
+    {%- if label is not same as(false) -%}
+        {%- set label_attr = label_attr|merge({class: ('form-label ' ~ label_attr.class|default('') ~ (required ? ' required' : ''))|trim}) -%}
+        {{- parent() -}}
+    {%- endif -%}
+{%- endblock form_label -%}
+
+{%- block form_help -%}
+    {%- if help is not empty -%}
+        <small id="{{ id }}_help" class="form-help">
+            {%- if help_html is same as(false) -%}
+                {{- translation_domain is same as(false) ? help : help|trans(help_translation_parameters, translation_domain) -}}
+            {%- else -%}
+                {{- translation_domain is same as(false) ? help|raw : help|trans(help_translation_parameters, translation_domain)|raw -}}
+            {%- endif -%}
+        </small>
+    {%- endif -%}
+{%- endblock form_help -%}
+
+{%- block form_row -%}
+    {%- set widget_attr = help is not empty ? {attr: {'aria-describedby': id ~ '_help'}} : {} -%}
+    <div{% with {attr: row_attr|merge({class: ('form-row ' ~ row_attr.class|default(''))|trim})} %}{{ block('attributes') }}{% endwith %}>
+        {{- form_label(form) -}}
+        {{- form_widget(form, widget_attr) -}}
+        {{- form_help(form) -}}
+        {{- form_errors(form) -}}
+    </div>
+{%- endblock form_row -%}
+
+{%- block form_errors -%}
+    {%- if errors|length > 0 -%}
+        {%- if form is rootform -%}
+            <div class="alert alert-danger" role="alert">
+                {%- for error in errors %}<p class="m-0">{{ error.message }}</p>{% endfor -%}
+            </div>
+        {%- else -%}
+            {%- for error in errors %}<span class="form-error">{{ error.message }}</span>{% endfor -%}
+        {%- endif -%}
+    {%- endif -%}
+{%- endblock form_errors -%}
+
+{%- block button_widget -%}
+    {%- set attr = attr|merge({class: ('btn ' ~ attr.class|default('btn-primary'))|trim}) -%}
+    {{- parent() -}}
+{%- endblock button_widget -%}
+
+{%- block button_row -%}
+    <div class="form-row mt-5">
+        {{- form_widget(form) -}}
+    </div>
+{%- endblock button_row -%}
+
+{%- block recaptcha_widget -%}
+    {%- if recaptcha_enabled -%}
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+        <div class="g-recaptcha mt-4 flex justify-center" data-sitekey="{{ recaptcha_site_key }}" data-theme="light" data-size="normal"></div>
+    {%- endif -%}
+{%- endblock recaptcha_widget -%}
+
+{%- block recaptcha_row -%}
+    {%- if recaptcha_enabled -%}
+        <div class="form-row">
+            {{- form_widget(form) -}}
+            {{- form_errors(form) -}}
+        </div>
+    {%- endif -%}
+{%- endblock recaptcha_row -%}

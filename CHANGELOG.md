@@ -22,7 +22,9 @@ On next release:
 - Proxy Packagist through repo.packagist.org with conditional metadata refreshes ([#702](https://github.com/repman-io/repman/issues/702), [#709](https://github.com/repman-io/repman/issues/709))
 - `repman:proxy:sync-releases` is deprecated and does nothing ([#701](https://github.com/repman-io/repman/issues/701))
 - Honour `MESSENGER_TRANSPORT_DSN` ([#533](https://github.com/repman-io/repman/issues/533))
-- Update front-end libraries (jQuery 3.7, Bootstrap 4.6, ApexCharts 3.54) with SRI
+- New frontend: Vite, Tailwind CSS 4 and TypeScript, without jQuery, Bootstrap JS, bootstrap-select and Tabler;
+  native `<dialog>` confirmations, a searchable Vue combobox for long selects, Chart.js charts (ApexCharts is no longer
+  free for every company), an own form theme; building it needs Node.js (the Docker image does it)
 
 ### Fixed
 - Prefer the VCS tag/branch name over a hardcoded `version` in composer.json when syncing (tags were silently skipped: the sync looked successful but the release never appeared, [#715](https://github.com/repman-io/repman/pull/715))
@@ -39,6 +41,11 @@ On next release:
 - Old version dists were never cleaned up (`removeVersionDists` never matched any file)
 - Download retries: no retry on client errors, backoff on 429/5xx, status read after redirects ([#577](https://github.com/repman-io/repman/issues/577))
 - `TRUSTED_PROXIES` setups, download statistics and invitation links after the Symfony upgrade
+- Plain Git, Mercurial and Subversion packages never showed versions, dependencies or dependants (they have no dist)
+- Per-version statistics broke for versions with a slash (`dev-feature/x`) or organizations with "version" in the alias
+- The timezone select showed (and saved) the first zone of the list for users still on the default UTC
+- The Buddy button on the registration page appeared only when Bitbucket was enabled
+- Docker on Linux: `assets:install` could not write the bind mounted `public/` as `www-data`
 
 ### Removed
 - PEAR package type (removed from Composer 2)

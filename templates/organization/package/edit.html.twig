@@ -1,11 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block header %}
-    <a href="{{ path('organization_packages', {"organization":organization.alias}) }}"
-       class="btn btn-secondary px-1 mr-1" title="Package List">
-        <span class="text-muted mr-1">&laquo;</span>
-        {% include 'svg/package.svg' %}
-    </a>
+    {% include 'component/backToPackages.html.twig' %}
 
     {{ package.name }} edit
 {% endblock %}
@@ -14,9 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-6 col-lg-4">
-        {{ form(form) }}
-    </div>
+<div class="max-w-md">
+    {{ form(form) }}
 </div>
 {% endblock %}

@@ -27,7 +27,8 @@ class ChangeTimezoneType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $zones = [];
+        // UTC is the default timezone of a user, but not one of the ICU zone ids
+        $zones = ['Coordinated Universal Time (UTC)' => 'UTC'];
         foreach (Timezones::getIds() as $zone) {
             $zones[sprintf('%s %s', Timezones::getName($zone), Timezones::getGmtOffset($zone))] = $zone;
         }
@@ -36,12 +37,7 @@ class ChangeTimezoneType extends AbstractType
             ->add('timezone', ChoiceType::class, [
                 'choices' => $zones,
                 'label' => false,
-                'attr' => [
-                    'class' => 'form-control selectpicker',
-                    'data-live-search' => 'true',
-                    'data-style' => 'btn-secondary',
-                    'data-size' => 10,
-                ],
+                'attr' => ['data-search-select' => true],
                 'constraints' => [
                     new NotBlank(),
                     new Timezone(),

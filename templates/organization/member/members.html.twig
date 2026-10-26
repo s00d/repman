@@ -3,7 +3,7 @@
 {% block header_btn %}
     {% if is_granted('ROLE_ORGANIZATION_OWNER', organization) %}
         {% if invitations > 0 %}
-            <a href="{{ path('organization_invitations', {"organization":organization.alias}) }}" class="mr-5">
+            <a href="{{ path('organization_invitations', {"organization":organization.alias}) }}" class="mr-3">
                 Pending invitations: {{ invitations }}
             </a>
         {% endif %}
@@ -16,7 +16,7 @@
 
 {% block content %}
 
-<div class="markdown">
+<div class="table-wrap">
     <table class="table">
         <thead>
             <tr>
@@ -39,10 +39,9 @@
                             </a>
                             <button
                                     class="btn btn-danger btn-sm"
-                                    type="submit"
-                                    data-target="confirmation"
-                                    data-action="{{ path('organization_remove_member', {organization: organization.alias, member: member.userId}) }}"
-                                    data-method="DELETE"
+                                    type="button"
+                                    data-confirm-action="{{ path('organization_remove_member', {organization: organization.alias, member: member.userId}) }}"
+                                    data-confirm-method="DELETE"
                             >
                                 Remove
                             </button>
@@ -52,6 +51,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {% include 'component/pagination.html.twig' with {'path_name': 'organization_members', 'path_params': {'organization': organization.alias}} %}
+</div>
+{% include 'component/pagination.html.twig' with {'path_name': 'organization_members', 'path_params': {'organization': organization.alias}} %}
 </div>
 {% endblock %}

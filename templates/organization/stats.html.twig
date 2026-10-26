@@ -5,28 +5,30 @@
 {% block header %}{{ organization.name }} package installs (last {{ days }} days){% endblock %}
 
 {% block header_btn %}
-    <select class="form-control period-select selectpicker" data-style="btn-secondary">
-        <option {{ days == 7 ? 'selected="selected"' : '' }} value="7">last 7 days</option>
-        <option {{ days == 30 ? 'selected="selected"' : '' }} value="30">last 30 days</option>
-        <option {{ days == 90 ? 'selected="selected"' : '' }} value="90">last 90 days</option>
-        <option {{ days == 365 ? 'selected="selected"' : '' }} value="365">last year</option>
+    <label class="sr-only" for="stats-period">Period</label>
+    <select id="stats-period" class="form-control w-auto" data-navigate-url="{{ app.request.pathinfo }}?days={value}">
+        {% for value, label in {7: 'last 7 days', 30: 'last 30 days', 90: 'last 90 days', 365: 'last year'} %}
+            <option value="{{ value }}" {{ days == value ? 'selected' : '' }}>{{ label }}</option>
+        {% endfor %}
     </select>
 {% endblock %}
 
+{% block installs_chart %}
+    <div data-vue="InstallsChart" data-props="{{ {
+        name: package is defined ? package.name : 'Installs',
+        points: installs.days|map(day => {x: day.date, y: day.installs}),
+    }|json_encode }}" class="h-96"></div>
+{% endblock %}
+
 {% block content %}
-    <div id="chart-installs" ></div>
+    {{ block('installs_chart') }}
 
     <hr />
 
     <h3>Summary:</h3>
     <p>
-        Today installs: <span class="number-format">{{ (installs.days | last).installs }}</span><br />
-        Last {{ days ?? 30 }} days installs: <span class="number-format">{{ installs.daysTotal }}</span><br />
-        <strong>Total installs: <span class="number-format">{{ installs.total }}</span></strong>
+        Today installs: {{ (installs.days | last).installs|number_format }}<br />
+        Last {{ days }} days installs: {{ installs.daysTotal|number_format }}<br />
+        <strong>Total installs: {{ installs.total|number_format }}</strong>
     </p>
-{% endblock %}
-
-{% block javascripts %}
-<script type="text/javascript" src="{{ asset('dist/js/apexcharts.min.js') }}"></script>
-{% include 'component/js/stats.js.twig' %}
 {% endblock %}

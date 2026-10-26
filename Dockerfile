@@ -1,3 +1,14 @@
+# frontend assets (assets/, see package.json); Tailwind scans templates and src for class names
+FROM node:24-alpine AS assets
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY vite.config.ts tsconfig.json ./
+COPY assets assets
+COPY templates templates
+COPY src src
+RUN npm run build
+
 # the minor line is pinned, patch releases (security fixes) arrive with every rebuild
 FROM php:8.4-fpm-alpine
 
@@ -41,6 +52,9 @@ RUN mkdir /app
 WORKDIR /app
 
 COPY . .
+# public/ is bind mounted from the checkout in docker-compose.yml, the app service copies the
+# build there on start
+COPY --from=assets /app/public/build /opt/repman/build
 
 ENV APP_ENV=prod
 

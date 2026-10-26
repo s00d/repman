@@ -31,7 +31,7 @@ final class SendResetPasswordLinkType extends AbstractType
                 new NotNull(),
                 new Email(['mode' => 'html5']),
             ]])
-            ->add('send', SubmitType::class, ['label' => 'Email me a password reset link', 'attr' => ['class' => 'btn-primary btn-block']])
+            ->add('send', SubmitType::class, ['label' => 'Email me a password reset link', 'attr' => ['class' => 'btn-primary w-full']])
         ;
     }
 }

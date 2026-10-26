@@ -1,0 +1,318 @@
+@import 'tailwindcss';
+
+@source '../../templates';
+@source '../../src/Form';
+@source '../../src/Controller';
+
+@theme {
+    --color-brand-50: #eef5fc;
+    --color-brand-100: #d6e6f7;
+    --color-brand-500: #2b7ad6;
+    --color-brand-600: #206bc4;
+    --color-brand-700: #1a579f;
+    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* hidden until the dropdown controller opens it, see controllers/dropdown.ts */
+[data-dropdown-menu]:not(.is-open) {
+    display: none;
+}
+
+@layer base {
+    body {
+        @apply bg-slate-100 text-sm text-slate-800 antialiased;
+    }
+
+    a {
+        @apply text-brand-600 hover:text-brand-700 hover:underline;
+    }
+
+    h3 {
+        @apply mb-3 text-lg font-semibold;
+    }
+
+    h4 {
+        @apply mb-1 text-sm font-semibold text-slate-600;
+    }
+
+    p {
+        @apply mb-3;
+    }
+
+    hr {
+        @apply my-6 border-slate-200;
+    }
+
+    pre {
+        @apply overflow-x-auto rounded-md bg-slate-800 p-3 font-mono text-xs leading-relaxed text-slate-100;
+    }
+
+    code {
+        @apply font-mono text-[0.9em];
+    }
+
+    svg.icon {
+        @apply inline-block size-4 shrink-0 align-[-0.125em];
+    }
+
+    dialog::backdrop {
+        @apply bg-slate-900/50;
+    }
+}
+
+@layer components {
+    .btn {
+        @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-3 py-1.5 text-sm font-medium whitespace-nowrap no-underline shadow-xs transition-colors hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-sm {
+        @apply px-2 py-1 text-xs;
+    }
+
+    .btn-block {
+        @apply w-full;
+    }
+
+    .btn-primary {
+        @apply bg-brand-600 text-white hover:bg-brand-700 hover:text-white;
+    }
+
+    .btn-secondary {
+        @apply border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900;
+    }
+
+    .btn-success {
+        @apply bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white;
+    }
+
+    .btn-danger {
+        @apply bg-red-600 text-white hover:bg-red-700 hover:text-white;
+    }
+
+    .btn-warning {
+        @apply bg-amber-500 text-white hover:bg-amber-600 hover:text-white;
+    }
+
+    .btn-info {
+        @apply bg-sky-600 text-white hover:bg-sky-700 hover:text-white;
+    }
+
+    .btn-dark {
+        @apply bg-slate-800 text-white hover:bg-slate-900 hover:text-white;
+    }
+
+    .card {
+        @apply min-w-0 rounded-lg border border-slate-200 bg-white shadow-sm;
+    }
+
+    .card-header {
+        @apply flex flex-wrap items-center gap-3 border-b border-slate-200 px-5 py-3;
+    }
+
+    .card-title {
+        @apply m-0 flex flex-1 flex-wrap items-center gap-2 text-base font-semibold;
+    }
+
+    .card-body {
+        @apply p-5;
+    }
+
+    .alert {
+        @apply mb-4 rounded-md border px-4 py-3;
+    }
+
+    .alert-success {
+        @apply border-emerald-200 bg-emerald-50 text-emerald-800;
+    }
+
+    .alert-info {
+        @apply border-sky-200 bg-sky-50 text-sky-800;
+    }
+
+    .alert-warning {
+        @apply border-amber-200 bg-amber-50 text-amber-800;
+    }
+
+    .alert-danger,
+    .alert-error {
+        @apply border-red-200 bg-red-50 text-red-800;
+    }
+
+    .badge {
+        @apply inline-block rounded px-1.5 py-0.5 text-xs leading-none font-semibold whitespace-nowrap;
+    }
+
+    .badge-success {
+        @apply bg-emerald-600 text-white;
+    }
+
+    .badge-info {
+        @apply bg-sky-500 text-white;
+    }
+
+    .badge-warning {
+        @apply bg-amber-400 text-amber-950;
+    }
+
+    .badge-danger {
+        @apply bg-red-600 text-white;
+    }
+
+    .table-wrap {
+        @apply relative -mx-5 px-5 max-lg:overflow-x-auto;
+    }
+
+    .table {
+        @apply w-full border-collapse text-left;
+
+        & th {
+            @apply border-b border-slate-200 px-3 py-2 text-xs font-semibold tracking-wide whitespace-nowrap text-slate-500 uppercase;
+        }
+
+        & td {
+            @apply border-b border-slate-100 px-3 py-2 align-top;
+        }
+
+        & tbody tr:hover {
+            @apply bg-slate-50;
+        }
+    }
+
+    .form-row {
+        @apply mb-4;
+    }
+
+    .form-label {
+        @apply mb-1 block font-medium text-slate-700;
+
+        &.required::after {
+            @apply text-red-600;
+            content: ' *';
+        }
+    }
+
+    .form-control {
+        @apply block w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 shadow-xs placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 focus:outline-none read-only:bg-slate-50 aria-invalid:border-red-500;
+    }
+
+    select.form-control {
+        @apply pr-8;
+    }
+
+    .form-check {
+        @apply flex items-center gap-2;
+
+        & input {
+            @apply size-4 rounded border-slate-300 accent-brand-600;
+        }
+    }
+
+    .form-help {
+        @apply mt-1 block text-xs text-slate-500;
+    }
+
+    .form-error {
+        @apply mt-1 block text-xs text-red-600;
+    }
+
+    .input-group {
+        @apply flex items-stretch;
+
+        & .form-control {
+            @apply rounded-r-none;
+        }
+
+        & .btn {
+            @apply rounded-l-none;
+        }
+    }
+
+    .dropdown {
+        @apply relative inline-block;
+    }
+
+    .dropdown-menu {
+        @apply absolute top-full z-30 mt-1 min-w-52 rounded-md border border-slate-200 bg-white py-1 text-left shadow-lg;
+    }
+
+    .dropdown-item {
+        @apply flex w-full items-center gap-2 px-3 py-1.5 text-slate-700 no-underline hover:bg-slate-100 hover:text-slate-900 hover:no-underline focus:bg-slate-100 focus:outline-none;
+    }
+
+    .dropdown-divider {
+        @apply my-1 border-t border-slate-200;
+    }
+
+    .nav-link {
+        @apply flex items-center gap-2 border-b-2 border-transparent px-3 py-3 text-slate-600 no-underline hover:text-slate-900 hover:no-underline;
+
+        &.active {
+            @apply border-brand-600 text-brand-700;
+        }
+    }
+
+    .pagination {
+        @apply flex flex-wrap gap-1;
+
+        & a,
+        & span {
+            @apply inline-flex min-w-8 items-center justify-center rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-700 no-underline hover:bg-slate-50 hover:no-underline;
+        }
+
+        & .active {
+            @apply border-brand-600 bg-brand-600 text-white hover:bg-brand-600;
+        }
+
+        & span {
+            @apply cursor-default border-transparent bg-transparent;
+        }
+    }
+
+    /* package README, rendered from markdown */
+    .markdown-body {
+        @apply leading-relaxed;
+
+        & h1 { @apply mt-6 mb-3 text-2xl font-semibold; }
+        & h2 { @apply mt-6 mb-3 border-b border-slate-200 pb-1 text-xl font-semibold; }
+        & h3 { @apply mt-5 mb-2 text-lg font-semibold; }
+        & h4, & h5, & h6 { @apply mt-4 mb-2 font-semibold text-slate-800; }
+        & ul { @apply mb-3 list-disc pl-6; }
+        & ol { @apply mb-3 list-decimal pl-6; }
+        & li { @apply mb-1; }
+        & blockquote { @apply mb-3 border-l-4 border-slate-300 pl-4 text-slate-600; }
+        & :not(pre) > code { @apply rounded bg-slate-100 px-1 py-0.5; }
+        & pre { @apply mb-3; }
+        & table { @apply mb-3 border-collapse; }
+        & th, & td { @apply border border-slate-200 px-3 py-1.5; }
+        & img { @apply inline max-w-full; }
+    }
+
+    /* hover card, e.g. the scan result summary next to a badge */
+    .hovercard {
+        @apply relative inline-block;
+
+        & > .hovercard-body {
+            @apply invisible absolute top-full right-0 z-30 mt-1 w-80 rounded-md border border-slate-200 bg-white p-3 text-left text-xs font-normal text-slate-700 opacity-0 shadow-lg transition-opacity;
+        }
+
+        &:hover > .hovercard-body,
+        &:focus-within > .hovercard-body {
+            @apply visible opacity-100;
+        }
+    }
+
+    .indeterminate {
+        @apply relative h-1 overflow-hidden rounded bg-brand-100;
+
+        &::after {
+            @apply absolute inset-y-0 w-1/3 rounded bg-brand-600;
+            content: '';
+            animation: indeterminate 1.2s ease-in-out infinite;
+        }
+    }
+}
+
+@keyframes indeterminate {
+    from { left: -33%; }
+    to { left: 100%; }
+}

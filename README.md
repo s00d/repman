@@ -26,6 +26,7 @@ Documentation: [https://repman.io/docs/](https://repman.io/docs/)
 
 - PHP >= 8.4 with the `intl`, `mbstring`, `pdo_pgsql` and `zip` extensions
 - PostgreSQL 11 - 17
+- Node.js >= 22.12 to build the frontend (not needed with Docker, the image builds it)
 - `var` dir must be writeable
 - any web server
 
@@ -104,13 +105,20 @@ and `var/` from the archive.
 
 [https://repman.io/docs/standalone/#ansible-playbooks-installation](https://repman.io/docs/standalone/#ansible-playbooks-installation)
 
+The deploy role builds the frontend with npm, so the server needs Node.js >= 22.12.
+
 ### Manual
 
 ```bash
 git clone git@github.com:s00d/repman.git
 cd repman
 composer install
+npm ci && npm run build
 ```
+
+The frontend (Vite, Tailwind CSS, TypeScript, Vue for the combobox and the charts) lives in `assets/`
+and is built into `public/build`. While working on it run `npm run watch`; `npm test` runs the
+Vitest suite and `npm run typecheck` the type check.
 
 Setup database:
 
@@ -308,11 +316,11 @@ However, Repman includes several third-party Open-Source libraries, which are li
 
 #### Libraries or projects directly included in Repman
 
-- Tabler: [MIT](https://github.com/tabler/tabler/blob/master/LICENSE)
 - Feather: [MIT](https://github.com/feathericons/feather/blob/master/LICENSE)
 - Lucide: License: [ISC](https://github.com/lucide-icons/lucide/blob/master/LICENSE)
 - Postmark Transactional Email Templates: [MIT](https://github.com/wildbit/postmark-templates/blob/master/LICENSE)
 - Libraries dynamically referenced via Composer: run `composer license` to get the latest licensing info about all dependencies.
+- Frontend libraries (Vue, Chart.js, Tailwind CSS, all MIT) via npm: see `package-lock.json`.
 
 ---
 

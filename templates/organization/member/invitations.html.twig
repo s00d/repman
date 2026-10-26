@@ -9,7 +9,7 @@
 
 {% block content %}
 
-<div class="markdown">
+<div class="table-wrap">
     <table class="table">
         <thead>
             <tr>
@@ -26,10 +26,9 @@
                     <td>
                         <button
                                 class="btn btn-danger btn-sm"
-                                type="submit"
-                                data-target="confirmation"
-                                data-action="{{ path('organization_remove_invitation', {organization: organization.alias, token: invitation.token}) }}"
-                                data-method="DELETE"
+                                type="button"
+                                data-confirm-action="{{ path('organization_remove_invitation', {organization: organization.alias, token: invitation.token}) }}"
+                                data-confirm-method="DELETE"
                         >
                             Remove
                         </button>
@@ -42,6 +41,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {% include 'component/pagination.html.twig' with {'path_name': 'organization_invitations', 'path_params': {'organization': organization.alias}} %}
+</div>
+{% include 'component/pagination.html.twig' with {'path_name': 'organization_invitations', 'path_params': {'organization': organization.alias}} %}
 </div>
 {% endblock %}

@@ -1,0 +1,6 @@
+<div class="input-group">
+    <input id="{{ id }}" type="text" class="form-control font-mono text-xs" readonly value="{{ value }}" aria-label="{{ label|default('Value to copy') }}">
+    <button type="button" class="btn btn-primary" data-clipboard-target="#{{ id }}" title="Copy to clipboard">
+        {% include 'svg/clipboard.svg' %}<span class="sr-only">Copy to clipboard</span>
+    </button>
+</div>

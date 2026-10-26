@@ -2,23 +2,22 @@
 {% set currentOffset = filter.offset %}
 
 {% if count > 0 and currentOffset <= count %}
-    <div class="align-items-center d-flex">
-        <p class="m-0">Showing {{ currentOffset + 1 }} to {{ min(currentOffset + limit, count) }} of {{ count }} entries</p>
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+        <p class="m-0 text-slate-600">Showing {{ currentOffset + 1 }} to {{ min(currentOffset + limit, count) }} of {{ count }} entries</p>
         {% if count > limit %}
             {# zero based; (count - 1) so that an exact multiple of the limit adds no empty page #}
             {% set lastPage = (count - 1) // limit %}
             {% set currentPage = currentOffset // limit %}
-            <ul class="pagination ml-auto">
+            <nav class="pagination ml-auto" aria-label="Pagination">
                 {% for i in 0..lastPage %}
                     {% if i == 0 or i == lastPage or (i - currentPage)|abs <= 2 %}
-                        <li class="page-item {% if currentOffset == i*limit %}active{% endif %}">
-                            <a class="page-link" href="{{ path(path_name, (path_params | default({})) | merge(filter.getQueryStringParams()) | merge({offset: i*limit})) }}">{{ i+1 }}</a>
-                        </li>
+                        <a class="{{ currentOffset == i*limit ? 'active' : '' }}"{% if currentOffset == i*limit %} aria-current="page"{% endif %}
+                           href="{{ path(path_name, (path_params | default({})) | merge(filter.getQueryStringParams()) | merge({offset: i*limit})) }}">{{ i+1 }}</a>
                     {% elseif (i - currentPage)|abs == 3 %}
-                        <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                        <span>&hellip;</span>
                     {% endif %}
                 {% endfor %}
-            </ul>
+            </nav>
         {% endif %}
     </div>
 {% endif %}

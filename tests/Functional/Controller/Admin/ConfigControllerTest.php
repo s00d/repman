@@ -25,6 +25,8 @@ final class ConfigControllerTest extends FunctionalTestCase
         self::assertTrue($this->client->getResponse()->isOk());
         self::assertStringContainsString('Repman configuration', $this->lastResponseBody());
         self::assertStringContainsString('OAuth registration', $this->lastResponseBody());
+        // the telemetry help links to the docs
+        self::assertMatchesRegularExpression('{anonymous usage data \(<a href="https://[^"]+" target="_blank" rel="noopener noreferrer">more info</a>\)}', $this->lastResponseBody());
     }
 
     public function testToggleAuthenticationOptions(): void

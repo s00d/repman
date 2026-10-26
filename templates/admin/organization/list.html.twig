@@ -3,7 +3,7 @@
 {% block header %}Organizations{% endblock %}
 
 {% block content %}
-<div class="markdown">
+<div class="table-wrap">
     <table class="table">
         <thead>
             <tr>
@@ -25,9 +25,8 @@
                         <button
                             class="btn btn-danger btn-sm"
                             type="button"
-                            data-target="confirmation"
-                            data-action="{{ path('admin_organization_remove', {organization: organization.alias }) }}"
-                            data-method="DELETE"
+                            data-confirm-action="{{ path('admin_organization_remove', {organization: organization.alias }) }}"
+                            data-confirm-method="DELETE"
                         >
                             Remove
                         </button>
@@ -35,9 +34,8 @@
                             <button
                                 class="btn btn-warning btn-sm"
                                 type="button"
-                                data-target="confirmation"
-                                data-action="{{ path('admin_organization_add_admin', {organization: organization.alias}) }}"
-                                data-method="POST"
+                                data-confirm-action="{{ path('admin_organization_add_admin', {organization: organization.alias}) }}"
+                                data-confirm-method="POST"
                             >
                                 Invite current user
                             </button>
@@ -47,6 +45,7 @@
             {% endfor %}
         </tbody>
     </table>
-    {% include 'component/pagination.html.twig' with {'path_name': 'admin_organization_list'} %}
+</div>
+{% include 'component/pagination.html.twig' with {'path_name': 'admin_organization_list'} %}
 </div>
 {% endblock %}

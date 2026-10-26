@@ -2,69 +2,48 @@
 
 {% block header %} {{ organization.name }} settings:{% endblock %}
 
-{% block content %}
-<div class="markdown">
+{% macro setting_form(form, field, button, buttonAttr) %}
+    {{ form_start(form, {attr: {class: 'flex max-w-2xl flex-wrap items-start gap-3'}}) }}
+        <div class="min-w-64 flex-1">
+            {{ form_widget(form[field]) }}
+            {{ form_errors(form[field]) }}
+        </div>
+        {{ form_widget(form[button], {attr: buttonAttr}) }}
+    {{ form_end(form) }}
+{% endmacro %}
+{% import _self as settings %}
 
+{% block content %}
     <h4>Organization name</h4>
-        {{ form_start(renameForm, {attr:{class:'row'}}) }}
-            <div class="col-4">
-                {{ form_widget(renameForm.name) }}
-                {{ form_errors(renameForm.name) }}
-            </div>
-            <div class="col-4 text-right">
-                {{ form_widget(renameForm.Rename) }}
-            </div>
-        {{ form_end(renameForm) }}
+    {{ settings.setting_form(renameForm, 'name', 'Rename', {}) }}
     <hr />
 
     <h4>Organization URL</h4>
-        <p>
-            Once you change the URL, you will have to change your Composer authorization config and composer.json.
-        </p>
-        {{ form_start(aliasForm, {attr:{class:'row'}}) }}
-            <div class="col-4">
-                {{ form_widget(aliasForm.alias) }}
-                {{ form_errors(aliasForm.alias) }}
-            </div>
-            <div class="col-4 text-right">
-                {{ form_widget(aliasForm.Change, {attr:{class:'btn-danger'}}) }}
-            </div>
-        {{ form_end(aliasForm) }}
+    <p>
+        Once you change the URL, you will have to change your Composer authorization config and composer.json.
+    </p>
+    {{ settings.setting_form(aliasForm, 'alias', 'Change', {class: 'btn-danger'}) }}
     <hr />
 
     <h4>Anonymous access</h4>
-        <p>
-            Enabling anonymous access allows to browse and download all organization packages.
-        </p>
-        {{ form_start(anonymousAccessForm, {attr:{class:'row'}}) }}
-            <div class="col-4">
-                {{ form_widget(anonymousAccessForm.hasAnonymousAccess) }}
-                {{ form_errors(anonymousAccessForm.hasAnonymousAccess) }}
-            </div>
-            <div class="col-4 text-right">
-                {{ form_widget(anonymousAccessForm.changeAnonymousAccess, {attr:{class:'btn-danger'}}) }}
-            </div>
-        {{ form_end(anonymousAccessForm) }}
+    <p>
+        Enabling anonymous access allows to browse and download all organization packages.
+    </p>
+    {{ settings.setting_form(anonymousAccessForm, 'hasAnonymousAccess', 'changeAnonymousAccess', {class: 'btn-danger'}) }}
     <hr />
 
     <h4>Delete this organization</h4>
-    <div class="row">
-        <div class="col-6">
-            <p>
-                This action is irreversible. Once you delete an organization, it will not be possible to restore it.
-            </p>
-        </div>
-        <div class="col-2 text-right">
-            <button
-                class="btn btn-danger"
-                type="button"
-                data-target="confirmation"
-                data-action="{{ path('organization_remove', {organization: organization.alias }) }}"
-                data-method="DELETE"
-            >
-                Delete
-            </button>
-        </div>
+    <div class="flex max-w-2xl flex-wrap items-start justify-between gap-3">
+        <p class="max-w-md">
+            This action is irreversible. Once you delete an organization, it will not be possible to restore it.
+        </p>
+        <button
+            class="btn btn-danger"
+            type="button"
+            data-confirm-action="{{ path('organization_remove', {organization: organization.alias }) }}"
+            data-confirm-method="DELETE"
+        >
+            Delete
+        </button>
     </div>
-</div>
 {% endblock %}
