@@ -70,6 +70,10 @@ final class ReactDownloader implements Downloader
     {
         ($this->queue)('get', $url, $headers)
             ->then(function (ResponseInterface $response) use ($onFulfilled): void {
+                // 304 Not Modified to a conditional request: what is stored is current
+                if ($response->getStatusCode() !== 200) {
+                    return;
+                }
                 // the browser buffers the body, and a buffered body cannot be detached into a stream
                 $stream = fopen('php://temp', 'r+b');
                 if ($stream === false) {

@@ -21,11 +21,15 @@ final class ProxyFactory
 
     public function create(string $url): Proxy
     {
+        $host = (string) parse_url($url, PHP_URL_HOST);
+
         return new Proxy(
-            (string) parse_url($url, PHP_URL_HOST),
+            $host,
             $url,
             $this->filesystem,
-            $this->downloader
+            $this->downloader,
+            // packagist.org itself refuses Repman; repo.packagist.org is its metadata mirror for tools
+            $host === 'packagist.org' ? 'https://repo.packagist.org' : null,
         );
     }
 }

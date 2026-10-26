@@ -15,18 +15,24 @@ use Munus\Control\Option;
 final class Proxy
 {
     private string $url;
+    private string $metadataUrl;
     private string $name;
     private FilesystemOperator $filesystem;
     private Downloader $downloader;
 
+    /**
+     * @param string|null $metadataUrl where metadata is fetched from when that is not $url itself
+     */
     public function __construct(
         string $name,
         string $url,
         FilesystemOperator $proxyFilesystem,
         Downloader $downloader,
+        ?string $metadataUrl = null,
     ) {
         $this->name = $name;
         $this->url = \rtrim($url, '/');
+        $this->metadataUrl = \rtrim($metadataUrl ?? $url, '/');
         $this->filesystem = $proxyFilesystem;
         $this->downloader = $downloader;
     }
@@ -36,7 +42,7 @@ final class Proxy
      */
     public function metadata(string $package): Option
     {
-        return $this->fetchMetadataLazy(\sprintf('%s/p2/%s.json', $this->url, $package));
+        return $this->fetchMetadataLazy(\sprintf('%s/p2/%s.json', $this->metadataUrl, $package));
     }
 
     /**
@@ -70,8 +76,8 @@ final class Proxy
     public function legacyMetadata(string $package, ?string $hash = null): Option
     {
         return $hash === null ?
-            $this->fetchMetadataLazy(\sprintf('%s/p/%s.json', $this->url, $package)) :
-            $this->fetchMetadata(\sprintf('%s/p/%s$%s.json', $this->url, $package, $hash));
+            $this->fetchMetadataLazy(\sprintf('%s/p/%s.json', $this->metadataUrl, $package)) :
+            $this->fetchMetadata(\sprintf('%s/p/%s$%s.json', $this->metadataUrl, $package, $hash));
     }
 
     /**
@@ -79,7 +85,7 @@ final class Proxy
      */
     public function providers(string $version, string $hash): Option
     {
-        return $this->fetchMetadata(\sprintf('%s/provider/provider-%s$%s.json', $this->url, $version, $hash));
+        return $this->fetchMetadata(\sprintf('%s/provider/provider-%s$%s.json', $this->metadataUrl, $version, $hash));
     }
 
     /**
@@ -106,7 +112,7 @@ final class Proxy
         $hash = $matches['hash'];
 
         return $this->fetchMetadata(
-            \sprintf('%s/provider/provider-latest$%s.json', $this->url, $hash),
+            \sprintf('%s/provider/provider-latest$%s.json', $this->metadataUrl, $hash),
             $hash
         );
     }
@@ -160,16 +166,17 @@ final class Proxy
         $this->filesystem->deleteDirectory(\sprintf('%s/dist/%s', $this->name, $package));
     }
 
+    /**
+     * Refreshes the cached Composer 2 metadata. Only files changed upstream are downloaded: Packagist
+     * answers the conditional request with 304 otherwise. Composer 1 (p/) metadata is no longer
+     * published by Packagist, so it is served from cache as is.
+     */
     public function syncMetadata(): void
     {
-        foreach ($this->filesystem->listContents($this->name) as $dir) {
-            if (!$dir->isDir() || !\in_array(\basename($dir->path()), ['p', 'p2'], true)) {
-                continue;
-            }
-
+        if ($this->filesystem->directoryExists($this->name.'/p2')) {
             $this->syncPackagesMetadata(
                 \array_filter(
-                    $this->jsonFiles($dir->path(), true),
+                    $this->jsonFiles($this->name.'/p2', true),
                     fn (StorageAttributes $file) => \strpos(self::filename($file), '$') === false)
             );
         }
@@ -197,9 +204,15 @@ final class Proxy
     {
         foreach ($files as $file) {
             $path = $file->path();
-            $url = \sprintf('%s://%s', (string) \parse_url($this->url, \PHP_URL_SCHEME), $path);
-            $this->downloader->getAsyncContents($url, [], function ($stream) use ($path): void {
+            $url = $this->metadataUrl.\substr($path, \strlen($this->name));
+            $headers = $file->lastModified() !== null
+                ? ['If-Modified-Since' => \gmdate('D, d M Y H:i:s \G\M\T', $file->lastModified())]
+                : [];
+            $this->downloader->getAsyncContents($url, $headers, function ($stream) use ($path): void {
                 $contents = (string) \stream_get_contents($stream);
+                if ($contents === '') {
+                    return;
+                }
 
                 $this->filesystem->write($path, $contents);
                 if (strpos($path, $this->name.'/p2') === false) {
@@ -363,8 +376,11 @@ final class Proxy
         );
     }
 
+    /**
+     * Metadata is stored under the proxy's name whichever host it came from.
+     */
     private function metadataPath(string $url): string
     {
-        return \parse_url($url, \PHP_URL_HOST).'/'.\ltrim((string) \parse_url($url, \PHP_URL_PATH), '/');
+        return $this->name.'/'.\ltrim((string) \parse_url($url, \PHP_URL_PATH), '/');
     }
 }

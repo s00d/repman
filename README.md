@@ -105,7 +105,7 @@ symfony proxy:domain:attach your-organization.repman
 - `bin/console repman:metadata:clear-cache` - clear packages metadata cache (json files)
 - `bin/console repman:create:admin <email> [<password>]` - create a new user with admin privileges
 - `bin/console repman:create:user <email> [<password>]` - create a new (normal) user
-- `bin/console repman:proxy:sync-releases` - sync proxy releases with packagist.org
+- `bin/console repman:proxy:sync-releases` - deprecated, does nothing (packagist.org no longer serves its release feed to Repman)
 - `bin/console repman:security:scan-all` - scan all synchronized packages
 - `bin/console repman:security:update-db` - update security advisories database, scan all packages if updated
 - `bin/console repman:package:synchronize <packageId>` - synchronize given package
