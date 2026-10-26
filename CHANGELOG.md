@@ -38,6 +38,12 @@ On next release:
 - Old version dists were never cleaned up (`removeVersionDists` never matched any file)
 - Download retries: no retry on client errors, backoff on 429/5xx, status read after redirects ([#577](https://github.com/repman-io/repman/issues/577))
 - `TRUSTED_PROXIES` setups, download statistics and invitation links after the Symfony upgrade
+- Plain Git, Mercurial and Subversion packages never showed versions, dependencies or dependants (they have no dist)
+- Per-version statistics broke for versions with a slash (`dev-feature/x`) or organizations with "version" in the alias
+- The timezone select showed (and saved) the first zone of the list for users still on the default UTC
+- The Buddy button on the registration page appeared only when Bitbucket was enabled
+- HTML in package descriptions was shown escaped, descriptions are plain text now
+- Docker on Linux: `assets:install` could not write the bind mounted `public/` as `www-data`
 
 ### Removed
 - PEAR package type (removed from Composer 2)

@@ -79,7 +79,7 @@
                                 {{ package.lastSyncError | nl2br }}
                             </div>
                         {% else %}
-                            {{ package.description }}
+                            {{ package.description|striptags }}
                         {% endif %}
                     </td>
                     {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}

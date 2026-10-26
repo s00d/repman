@@ -40,6 +40,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Requirement\Requirement;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class OrganizationController extends AbstractController
@@ -135,7 +136,7 @@ final class OrganizationController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/organization/{organization}/package/{package}/stats/{version}', name: 'organization_package_version_stats', methods: ['GET'], requirements: ['organization' => '%organization_pattern%', 'package' => '%uuid_pattern%'])]
+    #[Route(path: '/organization/{organization}/package/{package}/stats/{version}', name: 'organization_package_version_stats', methods: ['GET'], requirements: ['organization' => '%organization_pattern%', 'package' => '%uuid_pattern%', 'version' => Requirement::CATCH_ALL])]
     public function packageVersionStats(Organization $organization, Package $package, string $version, Request $request): JsonResponse
     {
         $days = min(max((int) $request->query->get('days', 30), 7), 365);

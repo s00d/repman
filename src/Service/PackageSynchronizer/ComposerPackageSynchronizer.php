@@ -19,6 +19,7 @@ use Composer\Config;
 use Composer\Factory;
 use Composer\IO\BufferIO;
 use Composer\IO\IOInterface;
+use Composer\Package\AliasPackage;
 use Composer\Package\CompletePackage;
 use Composer\Package\PackageInterface;
 use Composer\Repository\RepositoryFactory;
@@ -100,6 +101,9 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                 }
             }
 
+            if ($latest instanceof AliasPackage) {
+                $latest = $latest->getAliasOf();
+            }
             $name = $latest->getPrettyName();
 
             if (preg_match(Package::NAME_PATTERN, $name, $matches) !== 1) {
@@ -110,22 +114,25 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                 throw new \RuntimeException("Package {$name} already exists. Package name must be unique within organization.");
             }
 
+            // plain git, hg and svn repositories have no dist (Composer installs them from source),
+            // their versions and links are still recorded, only the archive download is skipped
             $versions = [];
             foreach ($packages as $p) {
-                if ($p->getDistUrl() !== null) {
-                    $versions[] = [
-                        'organizationAlias' => $package->organizationAlias(),
-                        'packageName' => $p->getPrettyName(),
-                        'prettyVersion' => $p->getPrettyVersion(),
-                        'version' => $p->getVersion(),
-                        'ref' => $p->getDistReference() ?? $p->getDistSha1Checksum() ?? '',
-                        'distType' => $p->getDistType() ?? 'zip',
-                        'distUrl' => $p->getDistUrl(),
-                        'authHeaders' => $this->getAuthHeaders($package),
-                        'releaseDate' => \DateTimeImmutable::createFromInterface($p->getReleaseDate() ?? new \DateTimeImmutable()),
-                        'stability' => $p->getStability(),
-                    ];
+                // the default branch alias (9999999-dev) is not a version of its own
+                if ($p instanceof AliasPackage) {
+                    continue;
                 }
+                $versions[] = [
+                    'organizationAlias' => $package->organizationAlias(),
+                    'packageName' => $p->getPrettyName(),
+                    'prettyVersion' => $p->getPrettyVersion(),
+                    'version' => $p->getVersion(),
+                    'ref' => $p->getDistReference() ?? $p->getDistSha1Checksum() ?? $p->getSourceReference() ?? '',
+                    'distType' => $p->getDistType() ?? 'zip',
+                    'distUrl' => $p->getDistUrl(),
+                    'releaseDate' => \DateTimeImmutable::createFromInterface($p->getReleaseDate() ?? new \DateTimeImmutable()),
+                    'stability' => $p->getStability(),
+                ];
             }
 
             usort($versions, fn ($item1, $item2) => $item2['releaseDate'] <=> $item1['releaseDate']);
@@ -159,14 +166,18 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                     continue;
                 }
 
-                $this->distStorage->download(
-                    $version['distUrl'],
-                    $dist,
-                    $this->getAuthHeaders($package)
-                );
+                if ($version['distUrl'] !== null) {
+                    $this->distStorage->download(
+                        $version['distUrl'],
+                        $dist,
+                        $this->getAuthHeaders($package)
+                    );
+                }
 
                 if ($latest->getVersion() === $version['version']) {
-                    $this->readmeExtractor->extractReadme($package, $dist);
+                    if ($version['distUrl'] !== null) {
+                        $this->readmeExtractor->extractReadme($package, $dist);
+                    }
 
                     // Set the version links
                     $links = [
@@ -202,7 +213,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                         Uuid::uuid4(),
                         $version['prettyVersion'],
                         $version['ref'],
-                        $this->distStorage->size($dist),
+                        $version['distUrl'] !== null ? $this->distStorage->size($dist) : 0,
                         $version['releaseDate'],
                         $version['stability']
                     )

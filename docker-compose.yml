@@ -30,6 +30,7 @@ services:
       net.core.somaxconn: 2048
     command: >
       bash -c 'chown -R www-data:www-data var &&
+      mkdir -p public/bundles && chown -R www-data:www-data public/bundles &&
       su-exec www-data bin/console cache:clear &&
       su-exec www-data bin/console d:m:m --no-interaction &&
       su-exec www-data bin/console messenger:setup-transports --no-interaction &&
