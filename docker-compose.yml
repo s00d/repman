@@ -21,13 +21,16 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   # each service starts as root only to hand var/ (a bind mount, possibly written by an older
-  # version as root) to www-data, then runs as www-data; php-fpm's workers run as www-data
+  # version as root) to www-data, then runs as www-data; php-fpm's workers run as www-data.
+  # var/cache is an anonymous volume, which `up --build` keeps across image updates: every
+  # service rebuilds its cache on start so it never runs new code with an old container.
   app:
     << : [*restart_policy, *repman_image]
     sysctls:
       net.core.somaxconn: 2048
     command: >
       bash -c 'chown -R www-data:www-data var &&
+      su-exec www-data bin/console cache:clear &&
       su-exec www-data bin/console d:m:m --no-interaction &&
       su-exec www-data bin/console messenger:setup-transports --no-interaction &&
       su-exec www-data bin/console repman:security:update-db &&
@@ -45,6 +48,7 @@ services:
     << : [*restart_policy, *repman_image]
     command: >
       sh -c 'chown -R www-data:www-data var/cache &&
+      su-exec www-data bin/console cache:clear &&
       exec su-exec www-data bin/console messenger:consume async --limit=500'
     env_file: .env.docker
     volumes:
@@ -58,6 +62,7 @@ services:
     << : [*restart_policy, *repman_image]
     command: >
       sh -c 'chown -R www-data:www-data var/cache &&
+      su-exec www-data bin/console cache:clear &&
       exec crond -f -L /app/var/log/cron.log'
     env_file: .env.docker
     volumes:

@@ -6,8 +6,8 @@ doctrine:
             uuid: 'Ramsey\Uuid\Doctrine\UuidType'
         schema_filter: '~^(?!messenger_messages|organization_package_webhook_request|proxy_package_download|lock_keys)~'
     orm:
-        auto_generate_proxy_classes: true
-        enable_lazy_ghost_objects: true
+        # PHP 8.4 lazy objects instead of generated proxy classes
+        enable_native_lazy_objects: true
         report_fields_where_declared: true
         controller_resolver:
             # controllers get entities through the app's value resolvers, never by id from the route
