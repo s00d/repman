@@ -37,7 +37,7 @@ class PackageRepository extends ServiceEntityRepository
 
     public function packageExist(string $name, UuidInterface $organizationId): bool
     {
-        return false !== $this->_em->getConnection()->fetchOne('SELECT id FROM organization_package WHERE name = :name AND organization_id = :organizationId', [
+        return false !== $this->getEntityManager()->getConnection()->fetchOne('SELECT id FROM organization_package WHERE name = :name AND organization_id = :organizationId', [
             'name' => $name,
             'organizationId' => $organizationId->toString(),
         ]);
@@ -45,6 +45,6 @@ class PackageRepository extends ServiceEntityRepository
 
     public function addDownload(Download $download): void
     {
-        $this->_em->persist($download);
+        $this->getEntityManager()->persist($download);
     }
 }

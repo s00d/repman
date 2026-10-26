@@ -46,14 +46,14 @@ final class SentryRequestListener implements EventSubscriberInterface
 
         SentrySdk::getCurrentHub()
             ->configureScope(function (Scope $scope) use ($userData): void {
-                $scope->setUser($userData, true);
+                $scope->setUser($userData);
             });
     }
 
     /**
      * @return array<string, array{0: string, 1?: int}>
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [KernelEvents::REQUEST => ['onKernelRequest', 1]];
     }

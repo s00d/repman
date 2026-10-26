@@ -117,7 +117,7 @@ final class SensioLabsPackageScanner implements PackageScanner
             [new PackageName($package->id()->toString(), (string) $package->name())]
         );
 
-        foreach ($providerData[$packageName] ?? [] as $packageData) {
+        foreach ($providerData[(string) $packageName] ?? [] as $packageData) {
             $packageVersion = $packageData['version_normalized']
                 ??
                 $this->versionParser->normalize($packageData['version']);

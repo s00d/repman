@@ -58,8 +58,11 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
     {
         try {
             $io = $this->createIO($package);
-            /** @var RepositoryInterface $repository */
-            $repository = current(RepositoryFactory::defaultRepos($io, $this->createConfig($package, $io)));
+            $config = $this->createConfig($package, $io);
+            $repository = current(RepositoryFactory::defaultRepos($io, $config, RepositoryFactory::manager($io, $config)));
+            if (!$repository instanceof RepositoryInterface) {
+                throw new \RuntimeException('No repository configured for package');
+            }
             $json = ['packages' => []];
             $packages = $repository->getPackages();
 

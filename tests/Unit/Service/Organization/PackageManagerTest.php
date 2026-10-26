@@ -14,12 +14,9 @@ use League\Flysystem\FilesystemOperator;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use PHPUnit\Framework\TestCase;
-use Prophecy\PhpUnit\ProphecyTrait;
 
 final class PackageManagerTest extends TestCase
 {
-    use ProphecyTrait;
-
     private PackageManager $manager;
     private string $baseDir;
     private FilesystemOperator $filesystem;

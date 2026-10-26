@@ -6,6 +6,7 @@ namespace Buddy\Repman\Query\User\OrganizationQuery;
 
 use Buddy\Repman\Query\Filter;
 use Buddy\Repman\Query\User\Model\Installs;
+use Buddy\Repman\Query\User\Model\Installs\Day;
 use Buddy\Repman\Query\User\Model\Organization;
 use Buddy\Repman\Query\User\Model\Organization\Invitation;
 use Buddy\Repman\Query\User\Model\Organization\Member;
@@ -108,7 +109,7 @@ final class DbalOrganizationQuery implements OrganizationQuery
 
         return new Installs(
             array_map(
-                static fn (array $row): Installs\Day => new Installs\Day($row['date'], $row['count']),
+                static fn (array $row): Day => new Day($row['date'], $row['count']),
                 $this->connection->fetchAllAssociative(
                     'SELECT * FROM (SELECT COUNT(package_id), date FROM organization_package_download WHERE date > :date AND package_id IN (:packages) GROUP BY date) AS installs ORDER BY date ASC',
                     [

@@ -42,7 +42,7 @@ final class ClearMetadataCacheCommandTest extends FunctionalTestCase
             self::assertFileExists($ignoredFile);
         }
 
-        self::assertEquals("Deleted 1 file(s).\n", $commandTester->getDisplay());
+        self::assertSame("Deleted 1 file(s).\n", $commandTester->getDisplay());
 
         $filesystem = new SymfonyFilesystem();
         $filesystem->remove($basePath);
@@ -56,7 +56,7 @@ final class ClearMetadataCacheCommandTest extends FunctionalTestCase
         $commandTester = new CommandTester($command);
         $commandTester->execute([]);
 
-        self::assertEquals("No metadata files found.\n", $commandTester->getDisplay());
+        self::assertSame("No metadata files found.\n", $commandTester->getDisplay());
     }
 
     /**

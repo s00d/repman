@@ -44,7 +44,7 @@ final class PackageDetails
         $this->latestReleaseDate = $latestReleaseDate;
         $this->description = $description;
         $this->lastSyncError = $lastSyncError;
-        $this->scanResult = $scanResult ?? null;
+        $this->scanResult = $scanResult;
         $this->keepLastReleases = $keepLastReleases;
         $this->readme = $readme;
         $this->replacementPackage = $replacementPackage;

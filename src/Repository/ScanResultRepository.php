@@ -25,7 +25,7 @@ class ScanResultRepository extends ServiceEntityRepository
 
     public function add(ScanResult $result): void
     {
-        $this->_em->persist($result);
-        $this->_em->flush();
+        $this->getEntityManager()->persist($result);
+        $this->getEntityManager()->flush();
     }
 }

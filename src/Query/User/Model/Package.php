@@ -52,7 +52,7 @@ final class Package
         $this->lastSyncError = $lastSyncError;
         $this->webhookCreatedAt = $webhookCreatedAt;
         $this->webhookCreatedError = $webhookCreatedError;
-        $this->scanResult = $scanResult ?? null;
+        $this->scanResult = $scanResult;
         $this->keepLastReleases = $keepLastReleases;
         $this->enableSecurityScan = $enableSecurityScan;
     }

@@ -39,7 +39,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
             new PackageNormalizer(),
             $this->repoMock = $this->createMock(PackageRepository::class),
             $distStorage,
-            $this->createMock(UserOAuthTokenRefresher::class),
+            self::createStub(UserOAuthTokenRefresher::class),
             'gitlab.com'
         );
         $this->resourcesDir = dirname(__DIR__, 3).'/Resources/';
@@ -149,7 +149,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
         self::assertFileExists($path);
 
         $json = unserialize((string) file_get_contents($path));
-        self::assertTrue($json['packages']['repman-io/repman'] !== []);
+        self::assertNotSame([], $json['packages']['repman-io/repman']);
         @unlink($path);
     }
 
@@ -165,7 +165,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
         self::assertFileExists($path);
 
         $json = unserialize((string) file_get_contents($path));
-        self::assertTrue($json['packages']['repman-io/repman'] !== []);
+        self::assertNotSame([], $json['packages']['repman-io/repman']);
         @unlink($path);
     }
 
@@ -181,7 +181,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
         self::assertFileExists($path);
 
         $json = unserialize((string) file_get_contents($path));
-        self::assertTrue($json['packages']['repman-io/repman'] !== []);
+        self::assertNotSame([], $json['packages']['repman-io/repman']);
         @unlink($path);
     }
 

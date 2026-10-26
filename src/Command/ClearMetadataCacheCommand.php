@@ -7,14 +7,14 @@ namespace Buddy\Repman\Command;
 use Buddy\Repman\Service\Dist\FilePatternFilterIterator;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\StorageAttributes;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand(name: 'repman:metadata:clear-cache', description: 'Clear packages metadata cache (json files)')]
 final class ClearMetadataCacheCommand extends Command
 {
-    protected static $defaultName = 'repman:metadata:clear-cache';
-
     private FilesystemOperator $repoFilesystem;
 
     /** @var array<string> */
@@ -26,16 +26,6 @@ final class ClearMetadataCacheCommand extends Command
     {
         $this->repoFilesystem = $repoFilesystem;
         parent::__construct();
-    }
-
-    /**
-     * @return void
-     */
-    protected function configure()
-    {
-        $this
-            ->setDescription('Clear packages metadata cache (json files)')
-        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -62,6 +52,6 @@ final class ClearMetadataCacheCommand extends Command
             $output->writeln(\sprintf('Deleted %s file(s).', $count))
             : $output->writeln('No metadata files found.');
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

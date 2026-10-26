@@ -33,9 +33,9 @@ final class ReadmeComposerPackageSynchronizerTest extends TestCase
                 $repoFilesystem
             ),
             new PackageNormalizer(),
-            $this->createMock(PackageRepository::class),
+            self::createStub(PackageRepository::class),
             $fileStorage,
-            $this->createMock(UserOAuthTokenRefresher::class),
+            self::createStub(UserOAuthTokenRefresher::class),
             'gitlab.com'
         );
         $this->resourcesDir = dirname(__DIR__, 3).'/Resources/';
@@ -64,7 +64,7 @@ final class ReadmeComposerPackageSynchronizerTest extends TestCase
         self::assertCount(1, $json['packages']['buddy-works/alpha']);
 
         self::assertCount(1, $package->versions());
-        self::assertEquals('1.2.0', $package->latestReleasedVersion());
+        self::assertSame('1.2.0', $package->latestReleasedVersion());
         self::assertNull($package->readme());
     }
 
@@ -83,11 +83,8 @@ final class ReadmeComposerPackageSynchronizerTest extends TestCase
         self::assertCount(3, $json['packages']['buddy-works/alpha']);
 
         self::assertCount(3, $package->versions());
-        self::assertEquals('1.3.0', $package->latestReleasedVersion());
-        self::assertEquals(
-            "<h1><a id=\"user-content-test\" href=\"#test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
-            $package->readme()
-        );
+        self::assertSame('1.3.0', $package->latestReleasedVersion());
+        self::assertSame("<h1><a id=\"user-content-test\" href=\"#test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n", $package->readme());
     }
 
     public function testCaseInsensitiveReadme(): void
@@ -105,11 +102,8 @@ final class ReadmeComposerPackageSynchronizerTest extends TestCase
         self::assertCount(1, $json['packages']['buddy-works/alpha']);
 
         self::assertCount(1, $package->versions());
-        self::assertEquals('1.3.0', $package->latestReleasedVersion());
-        self::assertEquals(
-            "<h1><a id=\"user-content-test\" href=\"#test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
-            $package->readme()
-        );
+        self::assertSame('1.3.0', $package->latestReleasedVersion());
+        self::assertSame("<h1><a id=\"user-content-test\" href=\"#test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n", $package->readme());
     }
 
     /**
@@ -133,11 +127,8 @@ final class ReadmeComposerPackageSynchronizerTest extends TestCase
         self::assertCount(1, $json['packages']['buddy-works/alpha']);
 
         self::assertCount(1, $package->versions());
-        self::assertEquals('1.3.0', $package->latestReleasedVersion());
-        self::assertEquals(
-            "<h1><a id=\"user-content-test\" href=\"#test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
-            $package->readme()
-        );
+        self::assertSame('1.3.0', $package->latestReleasedVersion());
+        self::assertSame("<h1><a id=\"user-content-test\" href=\"#test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n", $package->readme());
     }
 
     public function testUnstableVersion(): void
@@ -155,10 +146,7 @@ final class ReadmeComposerPackageSynchronizerTest extends TestCase
         self::assertCount(1, $json['packages']['buddy-works/alpha']);
 
         self::assertCount(1, $package->versions());
-        self::assertEquals('no stable release', $package->latestReleasedVersion());
-        self::assertEquals(
-            "<h1><a id=\"user-content-test\" href=\"#test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n",
-            $package->readme()
-        );
+        self::assertSame('no stable release', $package->latestReleasedVersion());
+        self::assertSame("<h1><a id=\"user-content-test\" href=\"#test\" class=\"\" aria-hidden=\"true\" tabindex=\"-1\" title=\"\"></a>Test</h1>\n<p>Testing</p>\n", $package->readme());
     }
 }

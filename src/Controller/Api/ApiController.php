@@ -77,7 +77,7 @@ abstract class ApiController extends AbstractController
         if ($pages === 0) {
             $pages = 1;
         }
-        $page = $page <= 0 ? $page = 1 : $page;
+        $page = $page <= 0 ? 1 : $page;
         $page = $page > $pages ? $pages : $page;
         $offset = ($perPage * $page) - $perPage;
 

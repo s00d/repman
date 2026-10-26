@@ -31,7 +31,7 @@ final class AddPackageHandlerTest extends IntegrationTestCase
             ->get();
 
         self::assertEquals($id, $package->id());
-        self::assertEquals($url, $package->url());
+        self::assertSame($url, $package->url());
     }
 
     public function testMissingOrganization(): void

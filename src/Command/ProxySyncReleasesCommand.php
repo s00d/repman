@@ -7,26 +7,26 @@ namespace Buddy\Repman\Command;
 use Buddy\Repman\Service\Downloader;
 use Buddy\Repman\Service\Proxy\ProxyRegister;
 use Buddy\Repman\Service\Stream;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
 
+#[AsCommand(name: 'repman:proxy:sync-releases', description: 'Sync proxy releases with packagist.org')]
 final class ProxySyncReleasesCommand extends Command
 {
     public const LOCK_TTL = 30;
 
-    protected static $defaultName = 'repman:proxy:sync-releases';
-
     private ProxyRegister $register;
     private Downloader $downloader;
-    private AdapterInterface $cache;
+    private CacheItemPoolInterface $cache;
     private LockInterface $lock;
     private LockFactory $lockFactory;
 
-    public function __construct(ProxyRegister $register, Downloader $downloader, AdapterInterface $packagistReleasesFeedCache, LockFactory $lockFactory)
+    public function __construct(ProxyRegister $register, Downloader $downloader, CacheItemPoolInterface $packagistReleasesFeedCache, LockFactory $lockFactory)
     {
         $this->register = $register;
         $this->downloader = $downloader;
@@ -36,23 +36,13 @@ final class ProxySyncReleasesCommand extends Command
         parent::__construct();
     }
 
-    /**
-     * @return void
-     */
-    protected function configure()
-    {
-        $this
-            ->setDescription('Sync proxy releases with packagist.org')
-        ;
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->lock = $this
             ->lockFactory
             ->createLock('packagist_releases_feed', self::LOCK_TTL);
         if (!$this->lock->acquire()) {
-            return 0;
+            return Command::SUCCESS;
         }
 
         try {
@@ -64,7 +54,7 @@ final class ProxySyncReleasesCommand extends Command
             $this->lock->release();
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     private function syncPackages(\SimpleXMLElement $feed): void

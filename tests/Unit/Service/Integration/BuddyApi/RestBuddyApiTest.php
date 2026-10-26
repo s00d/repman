@@ -40,7 +40,7 @@ final class RestBuddyApiTest extends TestCase
             ]));
         });
 
-        self::assertEquals('admin@buddy.works', (new RestBuddyApi($client))->primaryEmail('some-token'));
+        self::assertSame('admin@buddy.works', (new RestBuddyApi($client))->primaryEmail('some-token'));
         self::assertEquals([['GET', 'https://api.buddy.works/user/emails', 'Authorization: Bearer some-token']], $requests);
     }
 

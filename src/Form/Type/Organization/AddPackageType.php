@@ -53,7 +53,6 @@ class AddPackageType extends AbstractType
                     'Bitbucket' => 'bitbucket',
                     'Mercurial' => 'mercurial',
                     'Subversion' => 'subversion',
-                    'Pear' => 'pear',
                     'Artifact' => 'artifact',
                     'Path' => 'path',
                 ], fn (string $type): bool => in_array($type, $this->allowedTypes, true)),

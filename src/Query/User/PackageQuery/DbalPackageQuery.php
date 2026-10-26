@@ -7,6 +7,7 @@ namespace Buddy\Repman\Query\User\PackageQuery;
 use Buddy\Repman\Entity\Organization\Package\Version as VersionEntity;
 use Buddy\Repman\Query\Filter as BaseFilter;
 use Buddy\Repman\Query\User\Model\Installs;
+use Buddy\Repman\Query\User\Model\Installs\Day;
 use Buddy\Repman\Query\User\Model\Package;
 use Buddy\Repman\Query\User\Model\Package\Link;
 use Buddy\Repman\Query\User\Model\PackageDetails;
@@ -56,8 +57,8 @@ final class DbalPackageQuery implements PackageQuery
             'date' => 'p.latest_release_date',
         ];
 
-        if ($filter->hasSort() && isset($sortColumnMappings[$filter->getSortColumn()])) {
-            $sortSQL = $sortColumnMappings[$filter->getSortColumn()].' '.$filter->getSortOrder();
+        if ($filter->hasSort() && isset($sortColumnMappings[(string) $filter->getSortColumn()])) {
+            $sortSQL = $sortColumnMappings[(string) $filter->getSortColumn()].' '.$filter->getSortOrder();
         }
 
         return array_map(
@@ -306,8 +307,8 @@ final class DbalPackageQuery implements PackageQuery
         $query .= ' GROUP BY date) AS installs ORDER BY date ASC';
 
         return new Installs(
-            array_map(function (array $row): Installs\Day {
-                return new Installs\Day($row['date'], $row['count']);
+            array_map(function (array $row): Day {
+                return new Day($row['date'], $row['count']);
             }, $this->connection->fetchAllAssociative($query, $params)),
             $lastDays,
             (int) $this->connection->fetchOne('SELECT COUNT(package_id) FROM organization_package_download WHERE package_id = :package', ['package' => $packageId])

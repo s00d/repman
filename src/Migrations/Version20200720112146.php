@@ -4,24 +4,20 @@ declare(strict_types=1);
 
 namespace Buddy\Repman\Migrations;
 
+use Buddy\Repman\Migrations\Factory\ContainerAwareMigration;
 use Buddy\Repman\Service\Proxy;
 use Buddy\Repman\Service\Proxy\ProxyRegister;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use League\Flysystem\FilesystemException;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-final class Version20200720112146 extends AbstractMigration implements ContainerAwareInterface
+final class Version20200720112146 extends AbstractMigration implements ContainerAwareMigration
 {
     private ContainerInterface $container;
 
-    public function setContainer(?ContainerInterface $container = null): void
+    public function setContainer(ContainerInterface $container): void
     {
-        if ($container === null) {
-            throw new \InvalidArgumentException('Container is required');
-        }
-
         $this->container = $container;
     }
 

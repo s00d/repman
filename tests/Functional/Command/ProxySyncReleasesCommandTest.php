@@ -36,7 +36,7 @@ final class ProxySyncReleasesCommandTest extends FunctionalTestCase
         $result = $commandTester->execute([]);
 
         self::assertFileExists($newDist);
-        self::assertEquals($result, 0);
+        self::assertSame($result, 0);
         @unlink($newDist);
 
         // cache hit (pubDate is set)
@@ -45,7 +45,7 @@ final class ProxySyncReleasesCommandTest extends FunctionalTestCase
         $result = $commandTester->execute([]);
 
         self::assertFileDoesNotExist($newDist);
-        self::assertEquals($result, 0);
+        self::assertSame($result, 0);
     }
 
     public function testParsingError(): void
@@ -69,7 +69,7 @@ final class ProxySyncReleasesCommandTest extends FunctionalTestCase
         $result = $commandTester->execute([]);
 
         self::assertFileDoesNotExist($newDist);
-        self::assertEquals($result, 0);
+        self::assertSame($result, 0);
     }
 
     private function prepareCommand(string $feed, bool $fromCache = false, bool $lockCreated = false): ProxySyncReleasesCommand

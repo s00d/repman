@@ -197,7 +197,7 @@ final class Proxy
     {
         foreach ($files as $file) {
             $path = $file->path();
-            $url = \sprintf('%s://%s', \parse_url($this->url, \PHP_URL_SCHEME), $path);
+            $url = \sprintf('%s://%s', (string) \parse_url($this->url, \PHP_URL_SCHEME), $path);
             $this->downloader->getAsyncContents($url, [], function ($stream) use ($path): void {
                 $contents = (string) \stream_get_contents($stream);
 

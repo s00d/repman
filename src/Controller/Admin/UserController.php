@@ -15,7 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 final class UserController extends AbstractController
 {
@@ -30,9 +30,7 @@ final class UserController extends AbstractController
         $this->messageBus = $messageBus;
     }
 
-    /**
-     * @Route("/admin/user", name="admin_user_list", methods={"GET"})
-     */
+    #[Route(path: '/admin/user', name: 'admin_user_list', methods: ['GET'])]
     public function list(Request $request): Response
     {
         $filter = Filter::fromRequest($request);
@@ -44,9 +42,7 @@ final class UserController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/admin/user/{user}/disable", name="admin_user_disable", methods={"POST"}, requirements={"user"="%uuid_pattern%"})
-     */
+    #[Route(path: '/admin/user/{user}/disable', name: 'admin_user_disable', methods: ['POST'], requirements: ['user' => '%uuid_pattern%'])]
     public function disable(User $user, Request $request): Response
     {
         $this->messageBus->dispatch(new DisableUser($user->id()));
@@ -55,9 +51,7 @@ final class UserController extends AbstractController
         return $this->redirectToRoute('admin_user_list');
     }
 
-    /**
-     * @Route("/admin/user/{user}/enable", name="admin_user_enable", methods={"POST"}, requirements={"user"="%uuid_pattern%"})
-     */
+    #[Route(path: '/admin/user/{user}/enable', name: 'admin_user_enable', methods: ['POST'], requirements: ['user' => '%uuid_pattern%'])]
     public function enable(User $user, Request $request): Response
     {
         $this->messageBus->dispatch(new EnableUser($user->id()));
@@ -66,9 +60,7 @@ final class UserController extends AbstractController
         return $this->redirectToRoute('admin_user_list');
     }
 
-    /**
-     * @Route("/admin/user/{user}/roles", name="admin_user_roles", methods={"POST","GET"}, requirements={"user"="%uuid_pattern%"})
-     */
+    #[Route(path: '/admin/user/{user}/roles', name: 'admin_user_roles', methods: ['POST', 'GET'], requirements: ['user' => '%uuid_pattern%'])]
     public function updateRoles(User $user, Request $request): Response
     {
         $form = $this->createForm(ChangeRolesType::class, ['admin' => in_array('ROLE_ADMIN', $user->roles(), true)]);

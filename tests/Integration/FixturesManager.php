@@ -33,14 +33,15 @@ use Buddy\Repman\Tests\TestStorage;
 use Doctrine\ORM\EntityManagerInterface;
 use Munus\Collection\Stream;
 use Ramsey\Uuid\Uuid;
-use Symfony\Bundle\FrameworkBundle\Test\TestContainer;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class FixturesManager
 {
-    private TestContainer $container;
+    private ContainerInterface $container;
 
-    public function __construct(TestContainer $container)
+    public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
     }
@@ -234,7 +235,7 @@ final class FixturesManager
 
     public function prepareRepoFiles(): void
     {
-        $filesystem = new \Symfony\Component\Filesystem\Filesystem();
+        $filesystem = new Filesystem();
         $filesystem->mirror(
             __DIR__.'/../Resources/fixtures/buddy/dist/buddy-works/repman',
             TestStorage::path('buddy/dist/buddy-works/repman'),

@@ -47,7 +47,7 @@ final class Package implements \JsonSerializable
         $this->lastSyncAt = $lastSyncAt;
         $this->lastSyncError = $lastSyncError;
         $this->webhookCreatedAt = $webhookCreatedAt;
-        $this->scanResult = $scanResult ?? null;
+        $this->scanResult = $scanResult;
         $this->keepLastReleases = $keepLastReleases;
         $this->enableSecurityScan = $enableSecurityScan;
     }
