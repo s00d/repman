@@ -196,7 +196,9 @@ final class OrganizationControllerTest extends FunctionalTestCase
         self::assertTrue($this->client->getResponse()->isOk());
         $content = (string) $this->client->getResponse()->getContent();
         self::assertStringContainsString('Showing 1 to 1 of 111 entries', $content);
-        self::assertStringContainsString('offset=111&amp;limit=1', $content);
+        self::assertStringContainsString('offset=110&amp;limit=1', $content);
+        // 111 entries end at offset 110; there is no empty page after them
+        self::assertStringNotContainsString('offset=111&amp;limit=1', $content);
 
         // Invalid limit (too low)
         $this->client->request('GET', $this->urlTo('organization_packages', ['organization' => 'buddy', 'limit' => -1]));
