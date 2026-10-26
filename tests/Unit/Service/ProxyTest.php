@@ -101,8 +101,9 @@ final class ProxyTest extends TestCase
 
     public function testSyncMetadataSendsConditionalRequestsAndKeepsUnchangedFiles(): void
     {
-        $timestamp = strtotime('2019-01-01 08:00:00');
-        $this->filesystem->write('packagist.org/p2/buddy-works/repman.json', 'stored', ['timestamp' => $timestamp]);
+        $this->filesystem->write('packagist.org/p2/buddy-works/repman.json', 'stored');
+        $this->filesystem->write('packagist.org/p2/buddy-works/repman.json.last-modified', 'Tue, 30 Jun 2026 10:52:46 GMT');
+        $this->filesystem->write('packagist.org/p2/buddy-works/new.json', 'stored');
         /** @var \ArrayObject<string, string[]> $requests */
         $requests = new \ArrayObject();
         $proxy = new Proxy('packagist.org', 'https://packagist.org', $this->filesystem, new class($requests) implements Downloader {
@@ -119,7 +120,9 @@ final class ProxyTest extends TestCase
             public function getAsyncContents(string $url, array $headers, callable $onFulfilled): void
             {
                 $this->requests[$url] = $headers;
-                $onFulfilled(Stream::fromString('')); // what a 304 leaves behind
+                $headers === []
+                    ? $onFulfilled(Stream::fromString('{"fresh":true}'), 'Wed, 01 Jul 2026 08:00:00 GMT')
+                    : $onFulfilled(Stream::fromString(''), ''); // what a 304 leaves behind
             }
 
             public function getLastModified(string $url, callable $onFulfilled): void
@@ -133,8 +136,15 @@ final class ProxyTest extends TestCase
 
         $proxy->syncMetadata();
 
-        self::assertSame(['https://repo.packagist.org/p2/buddy-works/repman.json' => ['If-Modified-Since' => 'Tue, 01 Jan 2019 08:00:00 GMT']], $requests->getArrayCopy());
+        self::assertSame([
+            'https://repo.packagist.org/p2/buddy-works/new.json' => [],
+            'https://repo.packagist.org/p2/buddy-works/repman.json' => ['If-Modified-Since' => 'Tue, 30 Jun 2026 10:52:46 GMT'],
+        ], $requests->getArrayCopy());
+        // unchanged upstream: left as it is
         self::assertSame('stored', $this->filesystem->read('packagist.org/p2/buddy-works/repman.json'));
+        // first refresh: stored with the Last-Modified to send next time
+        self::assertSame('{"fresh":true}', $this->filesystem->read('packagist.org/p2/buddy-works/new.json'));
+        self::assertSame('Wed, 01 Jul 2026 08:00:00 GMT', $this->filesystem->read('packagist.org/p2/buddy-works/new.json.last-modified'));
     }
 
     public function testPackagistMetadataComesFromRepoPackagistAndIsStoredUnderPackagist(): void

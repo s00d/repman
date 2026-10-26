@@ -14,6 +14,8 @@ use Munus\Control\Option;
 
 final class Proxy
 {
+    private const LAST_MODIFIED_SUFFIX = '.last-modified';
+
     private string $url;
     private string $metadataUrl;
     private string $name;
@@ -205,16 +207,21 @@ final class Proxy
         foreach ($files as $file) {
             $path = $file->path();
             $url = $this->metadataUrl.\substr($path, \strlen($this->name));
-            $headers = $file->lastModified() !== null
-                ? ['If-Modified-Since' => \gmdate('D, d M Y H:i:s \G\M\T', $file->lastModified())]
+            // Packagist answers 304 only when this is exactly the Last-Modified it sent last time
+            $lastModifiedPath = $path.self::LAST_MODIFIED_SUFFIX;
+            $headers = $this->filesystem->fileExists($lastModifiedPath)
+                ? ['If-Modified-Since' => $this->filesystem->read($lastModifiedPath)]
                 : [];
-            $this->downloader->getAsyncContents($url, $headers, function ($stream) use ($path): void {
+            $this->downloader->getAsyncContents($url, $headers, function ($stream, string $lastModified = '') use ($path, $lastModifiedPath): void {
                 $contents = (string) \stream_get_contents($stream);
                 if ($contents === '') {
                     return;
                 }
 
                 $this->filesystem->write($path, $contents);
+                if ($lastModified !== '') {
+                    $this->filesystem->write($lastModifiedPath, $lastModified);
+                }
                 if (strpos($path, $this->name.'/p2') === false) {
                     $this->filesystem->write(
                         (string) \preg_replace(

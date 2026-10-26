@@ -52,12 +52,12 @@ final class FakeDownloader implements Downloader
     }
 
     /**
-     * @param callable(resource):void $onFulfilled
+     * @param callable(resource, string):void $onFulfilled
      */
     public function getAsyncContents(string $url, array $headers, callable $onFulfilled): void
     {
         if (isset($this->content[$url]) && $this->content[$url]['content'] !== null) {
-            $onFulfilled(Stream::fromString($this->content[$url]['content']));
+            $onFulfilled(Stream::fromString($this->content[$url]['content']), '');
         }
     }
 

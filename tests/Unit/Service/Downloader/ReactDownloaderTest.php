@@ -138,15 +138,16 @@ final class ReactDownloaderTest extends TestCase
     {
         $contents = [];
         $downloader = new ReactDownloader();
-        $downloader->getAsyncContents(self::$baseUrl.'/ok', [], function ($stream) use (&$contents): void {
+        $downloader->getAsyncContents(self::$baseUrl.'/ok', [], function ($stream, string $lastModified) use (&$contents): void {
             $contents[] = stream_get_contents($stream);
+            $contents[] = $lastModified;
         });
         $downloader->getAsyncContents(self::$baseUrl.'/missing', [], function ($stream): void {
             throw new \LogicException('Should not happen');
         });
         $downloader->run();
 
-        self::assertSame(['{"ok":true}'], $contents);
+        self::assertSame(['{"ok":true}', 'Wed, 21 Oct 2015 07:28:00 GMT'], $contents);
     }
 
     private static function freePort(): int

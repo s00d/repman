@@ -81,7 +81,7 @@ final class ReactDownloader implements Downloader
                 }
                 fwrite($stream, (string) $response->getBody());
                 rewind($stream);
-                $onFulfilled($stream);
+                $onFulfilled($stream, $response->getHeaderLine('Last-Modified'));
             }, static function (\Throwable $reason): void {
                 // a failed refresh keeps what is stored; react/promise 3 logs rejections nobody handles
             });
