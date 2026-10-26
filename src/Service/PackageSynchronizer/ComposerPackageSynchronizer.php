@@ -29,6 +29,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ComposerPackageSynchronizer implements PackageSynchronizer
 {
+    private const VCS_TYPES = ['vcs', 'git', 'github', 'gitlab', 'bitbucket'];
+
     private PackageManager $packageManager;
     private PackageNormalizer $packageNormalizer;
     private PackageRepository $packageRepository;
@@ -58,11 +60,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
     {
         try {
             $io = $this->createIO($package);
-            $config = $this->createConfig($package, $io);
-            $repository = current(RepositoryFactory::defaultRepos($io, $config, RepositoryFactory::manager($io, $config)));
-            if (!$repository instanceof RepositoryInterface) {
-                throw new \RuntimeException('No repository configured for package');
-            }
+            $repository = $this->createRepository($package, $io);
             $json = ['packages' => []];
             $packages = $repository->getPackages();
 
@@ -275,6 +273,23 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
         return $package->oauthToken()->accessToken($this->tokenRefresher);
     }
 
+    private function createRepository(Package $package, IOInterface $io): RepositoryInterface
+    {
+        $config = $this->createConfig($package, $io);
+        $manager = RepositoryFactory::manager($io, $config);
+        // VCS repositories ignore a hardcoded composer.json "version", see PreferTagVcsRepository
+        foreach (self::VCS_TYPES as $type) {
+            $manager->setRepositoryClass($type, PreferTagVcsRepository::class);
+        }
+
+        $repository = current(RepositoryFactory::defaultRepos($io, $config, $manager));
+        if (!$repository instanceof RepositoryInterface) {
+            throw new \RuntimeException('No repository configured for package');
+        }
+
+        return $repository;
+    }
+
     private function createConfig(Package $package, IOInterface $io): Config
     {
         unset(Config::$defaultRepositories['packagist.org']);
@@ -282,7 +297,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
         $config->merge([
             'repositories' => [
                 [
-                    'type' => strpos($package->type(), '-oauth') !== false ? 'vcs' : $package->type(),
+                    'type' => $this->repositoryType($package),
                     'url' => $package->repositoryUrl(),
                 ],
             ],
@@ -296,5 +311,10 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
         }
 
         return $config;
+    }
+
+    private function repositoryType(Package $package): string
+    {
+        return strpos($package->type(), '-oauth') !== false ? 'vcs' : $package->type();
     }
 }

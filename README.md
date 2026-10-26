@@ -1,13 +1,14 @@
 # Repman - PHP Repository Manager
 
 [![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%208.4-8892BF.svg)](https://php.net/)
-[![Uptime Robot ratio (24h)](https://badgen.net/uptime-robot/day/m784813562-93c7dab381e24ccdb679c5d2)](https://stats.uptimerobot.com/QAMQli6XQM)
-[![buddy pipeline](https://app.buddy.works/repman/repman/pipelines/pipeline/244549/badge.svg?token=ac6f2fe807ba6b7ad90902f5bda1c1fb8445014757f82e1867f2cad2fd612035 "buddy pipeline")](https://app.buddy.works/repman/repman/pipelines/pipeline/244549)
-[![codecov](https://codecov.io/gh/repman-io/repman/branch/master/graph/badge.svg)](https://codecov.io/gh/repman-io/repman)
-[![Hits-of-Code](https://hitsofcode.com/github/repman-io/repman)](https://hitsofcode.com/view/github/repman-io/repman)
-[![Maintainability](https://api.codeclimate.com/v1/badges/23a93132c8273cabf9eb/maintainability)](https://codeclimate.com/github/repman-io/repman/maintainability)
-[![Docker Pulls](https://img.shields.io/docker/pulls/buddy/repman)](https://hub.docker.com/r/buddy/repman)
-![License](https://img.shields.io/github/license/repman-io/repman)
+[![Tests](https://github.com/s00d/repman/actions/workflows/tests.yaml/badge.svg)](https://github.com/s00d/repman/actions/workflows/tests.yaml)
+![License](https://img.shields.io/github/license/s00d/repman)
+
+> **This is a maintained fork of [repman-io/repman](https://github.com/repman-io/repman).** It runs on
+> PHP 8.4 and Symfony 6.4 LTS, has every dependency advisory closed, a working Packagist proxy and a set
+> of bug fixes; the changes are offered upstream in
+> [repman-io/repman#717](https://github.com/repman-io/repman/pull/717). Existing installations can
+> switch to it without losing data, see [Switching from repman-io/repman](#switching-from-repman-iorepman).
 
 **Repman** is a PHP repository manager. Main features:
 
@@ -35,6 +36,24 @@ Documentation: [https://repman.io/docs/](https://repman.io/docs/)
 [https://repman.io/docs/standalone/#docker-installation](https://repman.io/docs/standalone/#docker-installation)
 
 `docker-compose.yml` builds the image from this checkout: `docker compose up -d --build`.
+
+#### Switching from repman-io/repman
+
+The fork reads the same database and `var/` layout, so an existing installation switches with the
+upgrade below; only the source of the code changes. In the checkout your installation runs from:
+
+```bash
+cp .env.docker .env.docker.mine                       # your settings; the file is tracked by git
+git stash                                             # parks any local edits (git stash pop brings them back)
+git remote add fork https://github.com/s00d/repman.git
+git fetch fork
+git checkout -B master fork/master                    # var/ is untracked and stays as it is
+cp .env.docker.mine .env.docker                       # put your settings back
+```
+
+If you ran the `buddy/repman` image without a git checkout, clone this repository and move your
+`var/` directory and `.env.docker` into the clone before the upgrade steps; run `docker compose` from
+the clone.
 
 #### Upgrading a Docker installation
 
@@ -88,7 +107,7 @@ and `var/` from the archive.
 ### Manual
 
 ```bash
-git clone git@github.com:repman-io/repman.git
+git clone git@github.com:s00d/repman.git
 cd repman
 composer install
 ```
@@ -278,7 +297,7 @@ docker-compose up
 In case of any problems, you can use:
 
 - Our documentation: [repman.io/docs](https://repman.io/docs/) - it is also open sourced [github.com/repman-io/repman-docs-pages](https://github.com/repman-io/repman-docs-pages)
-- GitHub issue list: [github.com/repman-io/repman/issues](https://github.com/repman-io/repman/issues) - feel free to create a new issue there
+- GitHub issue list: [github.com/s00d/repman/issues](https://github.com/s00d/repman/issues) - feel free to create a new issue there
 - E-mail: contact [at] repman.io
 
 ## License

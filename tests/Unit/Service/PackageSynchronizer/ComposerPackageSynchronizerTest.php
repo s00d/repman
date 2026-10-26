@@ -18,6 +18,7 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Process\Process;
 
 final class ComposerPackageSynchronizerTest extends TestCase
 {
@@ -69,6 +70,42 @@ final class ComposerPackageSynchronizerTest extends TestCase
         rmdir($basePath);
 
         self::assertCount(1, $package->versions());
+    }
+
+    public function testSynchronizeGitPackagePrefersTagOverComposerJsonVersion(): void
+    {
+        $repoDir = sys_get_temp_dir().'/repman-git-'.uniqid('', true);
+        mkdir($repoDir);
+        $git = static function (string ...$command) use ($repoDir): void {
+            $process = new Process(['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'init.defaultBranch=main', ...$command], $repoDir);
+            $process->mustRun();
+        };
+
+        // a hardcoded version that no longer matches the tags made Composer skip them silently
+        file_put_contents($repoDir.'/composer.json', (string) json_encode(['name' => 'buddy-works/tagged', 'version' => '1.0.0', 'license' => 'MIT']));
+        $git('init');
+        $git('add', 'composer.json');
+        $git('commit', '-m', 'initial');
+        $git('tag', '1.0.0');
+        file_put_contents($repoDir.'/README.md', "release 1.0.1\n");
+        $git('add', 'README.md');
+        $git('commit', '-m', 'bump');
+        $git('tag', '1.0.1');
+
+        $path = $this->baseDir.'/buddy/p/buddy-works/tagged.json';
+        @unlink($path);
+
+        $package = PackageMother::withOrganization('vcs', $repoDir, 'buddy');
+        $this->synchronizer->synchronize($package);
+
+        self::assertTrue($package->isSynchronizedSuccessfully(), (string) $this->getProperty($package, 'lastSyncError'));
+        $json = unserialize((string) file_get_contents($path));
+        self::assertArrayHasKey('1.0.0', $json['packages']['buddy-works/tagged']);
+        self::assertArrayHasKey('1.0.1', $json['packages']['buddy-works/tagged']);
+        self::assertSame('1.0.1', $this->getProperty($package, 'latestReleasedVersion'));
+
+        @unlink($path);
+        (new \Symfony\Component\Filesystem\Filesystem())->remove($repoDir);
     }
 
     public function testSynchronizeError(): void

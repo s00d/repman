@@ -25,6 +25,7 @@ On next release:
 - Update front-end libraries (jQuery 3.7, Bootstrap 4.6, ApexCharts 3.54) with SRI
 
 ### Fixed
+- Prefer the VCS tag/branch name over a hardcoded `version` in composer.json when syncing (tags were silently skipped: the sync looked successful but the release never appeared, [#715](https://github.com/repman-io/repman/pull/715))
 - `repman:proxy:sync-metadata` never refreshed anything ([#328](https://github.com/repman-io/repman/issues/328))
 - Artifact packages could not be downloaded ([#453](https://github.com/repman-io/repman/issues/453))
 - Non UTF-8 READMEs failed the package sync ([#699](https://github.com/repman-io/repman/issues/699))
