@@ -93,6 +93,13 @@ final class ComposerPackageSynchronizerTest extends TestCase
         self::assertCount(4, $json['packages']['buddy-works/alpha']);
         @unlink($path);
 
+        // the served reference is what the dist is stored under, so the download URL resolves
+        foreach ($json['packages']['buddy-works/alpha'] as $data) {
+            self::assertMatchesRegularExpression('/^[a-f0-9]{40}$/', $data['dist']['reference']);
+            self::assertSame($data['dist']['shasum'], $data['dist']['reference']);
+            self::assertFileExists(sprintf('%s/buddy/dist/buddy-works/alpha/%s_%s.zip', $this->baseDir, $data['version_normalized'], $data['dist']['reference']));
+        }
+
         self::assertCount(4, $package->versions());
         $versionStrings = array_map(function (Version $version): string {
             return $version->version();

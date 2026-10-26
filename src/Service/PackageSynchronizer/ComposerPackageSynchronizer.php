@@ -89,6 +89,11 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
             $latest = current($packages);
 
             foreach ($packages as $p) {
+                // artifacts only have a checksum: the dist is stored under it, and the client builds the
+                // download URL from the reference, so without one it asks for ".../<version>/.zip"
+                if ($p->getDistReference() === null && $p->getDistSha1Checksum() !== null) {
+                    $p->setDistReference($p->getDistSha1Checksum());
+                }
                 $json['packages'][$p->getPrettyName()][$p->getPrettyVersion()] = $this->packageNormalizer->normalize($p);
                 if (Comparator::greaterThan($p->getVersion(), $latest->getVersion()) && $p->getStability() === Version::STABILITY_STABLE) {
                     $latest = $p;
