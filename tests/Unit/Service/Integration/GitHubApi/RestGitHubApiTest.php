@@ -88,14 +88,23 @@ final class RestGitHubApiTest extends TestCase
         $currentUser->method('memberships')->willReturn($memberships);
         $memberships->method('all')->willReturn([
             [
+                'state' => 'active',
                 'organization' => [
                     'login' => 'buddy',
                 ],
             ],
+            [
+                'state' => 'pending',
+                'organization' => [
+                    'login' => 'invited-only',
+                ],
+            ],
         ]);
+        $organization->expects(self::once())->method('repositories')->with('buddy');
 
         $currentUser->method('repositories')->willReturn([
             ['full_name' => 'private/repman'],
+            ['full_name' => 'buddy/repman'],
         ]);
 
         $this->clientMock->method('api')->willReturnMap([['currentUser', $currentUser], ['organization', $organization]]);

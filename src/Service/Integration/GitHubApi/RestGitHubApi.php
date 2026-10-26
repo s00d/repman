@@ -45,7 +45,8 @@ final class RestGitHubApi implements GitHubApi
             }
         }
 
-        return $repos;
+        // /user/repos already lists repositories of the user's organizations
+        return array_values(array_unique($repos));
     }
 
     /**
@@ -111,6 +112,10 @@ final class RestGitHubApi implements GitHubApi
      */
     private function memberships(): array
     {
-        return $this->client->currentUser()->memberships()->all();
+        // paginated (30 per page by default), and pending invitations give no access to repositories
+        return array_filter(
+            (new ResultPager($this->client))->fetchAll($this->client->currentUser()->memberships(), 'all'),
+            fn ($membership) => ($membership['state'] ?? 'active') === 'active'
+        );
     }
 }
