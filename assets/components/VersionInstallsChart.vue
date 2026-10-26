@@ -73,7 +73,7 @@ onBeforeUnmount(() => chart?.destroy());
         </div>
         <div>
             <p v-if="error" class="alert alert-danger">Could not load the statistics of {{ current }}.</p>
-            <div class="relative h-96" :class="{ 'opacity-50': loading }" :aria-busy="loading">
+            <div class="relative h-72 sm:h-96" :class="{ 'opacity-50': loading }" :aria-busy="loading">
                 <canvas ref="canvas" role="img" :aria-label="`Daily installs of ${current ?? 'a version'}`"></canvas>
             </div>
         </div>

@@ -17,7 +17,7 @@
     <div data-vue="InstallsChart" data-props="{{ {
         name: package is defined ? package.name : 'Installs',
         points: installs.days|map(day => {x: day.date, y: day.installs}),
-    }|json_encode }}" class="h-96"></div>
+    }|json_encode }}" class="h-72 sm:h-96"></div>
 {% endblock %}
 
 {% block content %}

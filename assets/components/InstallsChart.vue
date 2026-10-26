@@ -18,7 +18,7 @@ onBeforeUnmount(() => chart?.destroy());
 </script>
 
 <template>
-    <div class="relative h-96">
+    <div class="relative h-72 sm:h-96">
         <canvas ref="canvas" role="img" :aria-label="`Daily installs of ${name}`"></canvas>
     </div>
 </template>
