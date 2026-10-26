@@ -35,7 +35,51 @@ Documentation: [https://repman.io/docs/](https://repman.io/docs/)
 [https://repman.io/docs/standalone/#docker-installation](https://repman.io/docs/standalone/#docker-installation)
 
 `docker-compose.yml` builds the image from this checkout: `docker compose up -d --build`.
-Upgrading an existing installation: see [UPGRADE.md](UPGRADE.md).
+
+#### Upgrading a Docker installation
+
+These steps were tested by upgrading a `buddy/repman:1.3.4` installation with organizations,
+packages, tokens, members and download statistics; all data was kept. See [UPGRADE.md](UPGRADE.md)
+for what changed.
+
+1. Back up the database and `var/` (packages, proxy cache, logs) while the old version runs:
+
+   ```bash
+   docker compose exec -T database pg_dump -U main -d main -Fc > repman-backup.dump
+   tar czf repman-var-backup.tgz var
+   ```
+
+2. Stop the stack. Containers are removed, the database volume and `var/` are kept:
+
+   ```bash
+   docker compose down
+   ```
+
+3. Update the checkout (`git pull`, or check out the release tag). Keep your `.env.docker`; if it
+   lists `pear` in `APP_ALLOWED_PACKAGE_TYPES`, remove it (Composer 2 dropped PEAR). `GA_TRACKING`
+   is no longer used.
+
+4. Build and start the new version. On start the app hands `var/` to `www-data`, rebuilds the cache
+   and runs the database migrations:
+
+   ```bash
+   docker compose up -d --build
+   docker compose logs -f app   # wait for "ready to handle connections"
+   ```
+
+5. Check the result and resynchronize packages, so they pick up the fixes of this release:
+
+   ```bash
+   docker compose exec app su-exec www-data bin/console doctrine:migrations:status
+   docker compose exec app su-exec www-data bin/console repman:package:synchronize-all
+   ```
+
+   Packages whose first synchronization failed have no name yet and are skipped by
+   `synchronize-all`; use *Synchronize* on the package list for those.
+
+Rolling back: `docker compose down`, check out the previous version, start it, then restore the
+database with `docker compose exec -T database pg_restore -U main -d main --clean < repman-backup.dump`
+and `var/` from the archive.
 
 ### Ansible
 
