@@ -10,6 +10,40 @@ On next release:
 - [ ] update src/Kernel.php (REPMAN_VERSION)
 - [ ] update docker-compose.yml (image tags)
 
+## [Unreleased]
+### Security
+- Update all dependencies; `composer audit` reported 88 advisories against the previous lock file
+- Escape raw HTML in package READMEs (rendered unescaped on the package page)
+- Do not let shared caches store repository authentication failures ([#613](https://github.com/repman-io/repman/issues/613))
+- Docker: PHP 8.4, nginx 1.30, TLS 1.3, containers run as `www-data`, SSH accepts new host keys but refuses changed ones
+
+### Changed
+- Require PHP 8.4; Symfony 6.4 LTS, Doctrine ORM 3, Composer 2, Flysystem 3, CommonMark 2, PHPUnit 11, PHPStan 2
+- Proxy Packagist through repo.packagist.org with conditional metadata refreshes ([#702](https://github.com/repman-io/repman/issues/702), [#709](https://github.com/repman-io/repman/issues/709))
+- `repman:proxy:sync-releases` is deprecated and does nothing ([#701](https://github.com/repman-io/repman/issues/701))
+- Honour `MESSENGER_TRANSPORT_DSN` ([#533](https://github.com/repman-io/repman/issues/533))
+- Update front-end libraries (jQuery 3.7, Bootstrap 4.6, ApexCharts 3.54) with SRI
+
+### Fixed
+- `repman:proxy:sync-metadata` never refreshed anything ([#328](https://github.com/repman-io/repman/issues/328))
+- Artifact packages could not be downloaded ([#453](https://github.com/repman-io/repman/issues/453))
+- Non UTF-8 READMEs failed the package sync ([#699](https://github.com/repman-io/repman/issues/699))
+- Long `suggest` descriptions failed the package sync ([#563](https://github.com/repman-io/repman/pull/563))
+- Disabled security scans still ran and sent e-mails ([#682](https://github.com/repman-io/repman/issues/682))
+- Security scan of packages without a stable release always failed ([#443](https://github.com/repman-io/repman/issues/443))
+- Pagination rendered an empty last page ([#318](https://github.com/repman-io/repman/issues/318))
+- Empty package search hid unsynchronized packages ([#640](https://github.com/repman-io/repman/issues/640))
+- GitHub organizations beyond the first 30 were ignored when adding packages
+- Changed dependency constraints were not shown after a resync
+- Old version dists were never cleaned up (`removeVersionDists` never matched any file)
+- Download retries: no retry on client errors, backoff on 429/5xx, status read after redirects ([#577](https://github.com/repman-io/repman/issues/577))
+- `TRUSTED_PROXIES` setups, download statistics and invitation links after the Symfony upgrade
+
+### Removed
+- PEAR package type (removed from Composer 2)
+- Universal Analytics (`GA_TRACKING`)
+- Abandoned dependencies: sensio/framework-extra-bundle, excelwebzone/recaptcha-bundle, buddy-works/buddy-works-php-api, buddy-works/oauth2-client, doctrine/annotations, doctrine/cache
+
 ## [1.3.4] - 2021-06-25
 ### Security
 - Upgrade flysystem to 1.1.4 - fix [CVE-2021-32708](https://github.com/thephpleague/flysystem/security/advisories/GHSA-9f46-5r25-5wfm)

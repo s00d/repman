@@ -1,6 +1,12 @@
 x-restart-policy: &restart_policy
   restart: unless-stopped
 
+# app, consumer and cron run the same image, built from this checkout. To use a published image
+# instead, set REPMAN_IMAGE (e.g. buddy/repman:1.5.0) and run `docker compose up --no-build`.
+x-repman-image: &repman_image
+  image: ${REPMAN_IMAGE:-repman:local}
+  build: .
+
 services:
   database:
     << : *restart_policy
@@ -14,16 +20,18 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+  # each service starts as root only to hand var/ (a bind mount, possibly written by an older
+  # version as root) to www-data, then runs as www-data; php-fpm's workers run as www-data
   app:
-    << : *restart_policy
-    image: buddy/repman:1.3.4
+    << : [*restart_policy, *repman_image]
     sysctls:
       net.core.somaxconn: 2048
     command: >
-      bash -c 'bin/console d:m:m --no-interaction &&
-      bin/console messenger:setup-transports --no-interaction &&
-      bin/console repman:security:update-db &&
-      bin/console assets:install &&
+      bash -c 'chown -R www-data:www-data var &&
+      su-exec www-data bin/console d:m:m --no-interaction &&
+      su-exec www-data bin/console messenger:setup-transports --no-interaction &&
+      su-exec www-data bin/console repman:security:update-db &&
+      su-exec www-data bin/console assets:install &&
       php-fpm'
     env_file: .env.docker
     volumes:
@@ -34,9 +42,10 @@ services:
       - database
 
   consumer:
-    << : *restart_policy
-    image: buddy/repman:1.3.4
-    command: ['bin/console', 'messenger:consume', 'async', '--limit=500']
+    << : [*restart_policy, *repman_image]
+    command: >
+      sh -c 'chown -R www-data:www-data var/cache &&
+      exec su-exec www-data bin/console messenger:consume async --limit=500'
     env_file: .env.docker
     volumes:
       - app-var:/app/var
@@ -44,10 +53,12 @@ services:
     depends_on:
       - app
 
+  # crond itself runs as root; the jobs in docker/crontabs/www-data run as www-data
   cron:
-    << : *restart_policy
-    image: buddy/repman:1.3.4
-    command: ['crond', '-f', '-L', '/app/var/log/cron.log']
+    << : [*restart_policy, *repman_image]
+    command: >
+      sh -c 'chown -R www-data:www-data var/cache &&
+      exec crond -f -L /app/var/log/cron.log'
     env_file: .env.docker
     volumes:
       - app-var:/app/var
@@ -58,7 +69,7 @@ services:
 
   nginx:
     << : *restart_policy
-    image: nginx:1.17-alpine
+    image: nginx:1.30-alpine
     env_file: .env.docker
     command: ['/nginx/start.sh']
     ports:
