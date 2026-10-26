@@ -64,6 +64,27 @@ final class ReadmeExtractorTest extends TestCase
         self::assertStringContainsString('rel="noopener noreferrer"', $readme);
     }
 
+    public function testReadmeInLatin1IsConverted(): void
+    {
+        $this->storeDist(['README.md' => "# Caf\xE9\n\nna\xEFve\n"]);
+        $package = PackageMother::some();
+
+        $this->extractor->extractReadme($package, $this->dist);
+
+        self::assertStringContainsString('Café', (string) $package->readme());
+        self::assertStringContainsString('naïve', (string) $package->readme());
+    }
+
+    public function testReadmeInUtf16IsConverted(): void
+    {
+        $this->storeDist(['README.md' => "\xFF\xFE".mb_convert_encoding("# Zürich\n", 'UTF-16LE', 'UTF-8')]);
+        $package = PackageMother::some();
+
+        $this->extractor->extractReadme($package, $this->dist);
+
+        self::assertStringContainsString('Zürich</h1>', (string) $package->readme());
+    }
+
     public function testReadmeIsNullWhenDistIsMissing(): void
     {
         $package = PackageMother::some();

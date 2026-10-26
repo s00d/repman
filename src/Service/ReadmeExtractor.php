@@ -7,6 +7,7 @@ namespace Buddy\Repman\Service;
 use Buddy\Repman\Entity\Organization\Package;
 use Buddy\Repman\Service\Dist\Storage;
 use League\CommonMark\Environment\Environment;
+use League\CommonMark\Exception\CommonMarkException;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\ExternalLink\ExternalLinkExtension;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
@@ -73,7 +74,7 @@ final class ReadmeExtractor
             for ($i = 0; $i < $zip->numFiles; ++$i) {
                 $filename = (string) $zip->getNameIndex($i);
                 if (preg_match('/^([^\/]+\/)?README.md$/i', $filename) === 1) {
-                    return $this->markdownConverter->convert((string) $zip->getFromIndex($i))->getContent();
+                    return $this->render((string) $zip->getFromIndex($i));
                 }
             }
         } finally {
@@ -82,5 +83,27 @@ final class ReadmeExtractor
         }
 
         return null;
+    }
+
+    /**
+     * CommonMark only takes UTF-8; a README in another encoding must not fail the whole package sync.
+     */
+    private function render(string $markdown): ?string
+    {
+        if (str_starts_with($markdown, "\xFF\xFE") || str_starts_with($markdown, "\xFE\xFF")) {
+            $markdown = mb_convert_encoding($markdown, 'UTF-8', 'UTF-16');
+        } elseif (str_starts_with($markdown, "\xEF\xBB\xBF")) {
+            $markdown = substr($markdown, 3);
+        }
+
+        if (!mb_check_encoding($markdown, 'UTF-8')) {
+            $markdown = mb_convert_encoding($markdown, 'UTF-8', 'Windows-1252');
+        }
+
+        try {
+            return $this->markdownConverter->convert($markdown)->getContent();
+        } catch (CommonMarkException $exception) {
+            return null;
+        }
     }
 }
