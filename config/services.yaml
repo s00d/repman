@@ -224,3 +224,13 @@ services:
     Buddy\Repman\Service\User\UserValueResolver:
         autoconfigure: false
         tags: [{ name: controller.argument_value_resolver, priority: 150 }]
+
+    # Google reCAPTCHA on sign-up; the EWZ_ names are kept from the bundle this replaced
+    Buddy\Repman\Form\Type\RecaptchaType:
+        arguments:
+            $enabled: '%env(bool:EWZ_RECAPTCHA_ENABLED)%'
+            $siteKey: '%env(EWZ_RECAPTCHA_SITE_KEY)%'
+    Buddy\Repman\Validator\RecaptchaValidator:
+        arguments:
+            $enabled: '%env(bool:EWZ_RECAPTCHA_ENABLED)%'
+            $secret: '%env(EWZ_RECAPTCHA_SECRET)%'
