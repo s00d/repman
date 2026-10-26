@@ -2,13 +2,25 @@ includes:
 	- vendor/phpstan/phpstan/conf/bleedingEdge.neon
 	- phpstan-baseline.neon
 parameters:
-    level: max
+    level: 9
     reportMaybesInPropertyPhpDocTypes: false
     checkExplicitMixed: false
     paths:
         - src/
         - tests/
-    bootstrapFiles:
-        - vendor/twig/twig/src/Extension/CoreExtension.php # twig global functions
     symfony:
-        container_xml_path: '%rootDir%/../../../var/cache/test/Buddy_Repman_KernelTestDebugContainer.xml'
+        containerXmlPath: '%rootDir%/../../../var/cache/test/Buddy_Repman_KernelTestDebugContainer.xml'
+    ignoreErrors:
+        # the test container exposes private services on purpose; that is what it is for
+        -
+            identifier: symfonyContainer.privateService
+            path: tests/*
+        # VcsRepository checks composer.json "version" against the tag before any public hook,
+        # wrapping the driver is the only way in (#715); Composer marks its interface @internal
+        -
+            message: '#internal interface Composer\\Repository\\Vcs\\VcsDriverInterface#'
+            reportUnmatched: false
+            paths:
+                - src/Service/PackageSynchronizer/IgnoreComposerJsonVersionVcsDriver.php
+                - src/Service/PackageSynchronizer/PreferTagVcsRepository.php
+                - tests/Unit/Service/PackageSynchronizer/IgnoreComposerJsonVersionVcsDriverTest.php

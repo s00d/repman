@@ -1,13 +1,14 @@
 # Repman - PHP Repository Manager
 
-[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.4-8892BF.svg)](https://php.net/)
-[![Uptime Robot ratio (24h)](https://badgen.net/uptime-robot/day/m784813562-93c7dab381e24ccdb679c5d2)](https://stats.uptimerobot.com/QAMQli6XQM)
-[![buddy pipeline](https://app.buddy.works/repman/repman/pipelines/pipeline/244549/badge.svg?token=ac6f2fe807ba6b7ad90902f5bda1c1fb8445014757f82e1867f2cad2fd612035 "buddy pipeline")](https://app.buddy.works/repman/repman/pipelines/pipeline/244549)
-[![codecov](https://codecov.io/gh/repman-io/repman/branch/master/graph/badge.svg)](https://codecov.io/gh/repman-io/repman)
-[![Hits-of-Code](https://hitsofcode.com/github/repman-io/repman)](https://hitsofcode.com/view/github/repman-io/repman)
-[![Maintainability](https://api.codeclimate.com/v1/badges/23a93132c8273cabf9eb/maintainability)](https://codeclimate.com/github/repman-io/repman/maintainability)
-[![Docker Pulls](https://img.shields.io/docker/pulls/buddy/repman)](https://hub.docker.com/r/buddy/repman)
-![License](https://img.shields.io/github/license/repman-io/repman)
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%208.4-8892BF.svg)](https://php.net/)
+[![Tests](https://github.com/s00d/repman/actions/workflows/tests.yaml/badge.svg)](https://github.com/s00d/repman/actions/workflows/tests.yaml)
+![License](https://img.shields.io/github/license/s00d/repman)
+
+> **This is a maintained fork of [repman-io/repman](https://github.com/repman-io/repman).** It runs on
+> PHP 8.4 and Symfony 6.4 LTS, has every dependency advisory closed, a working Packagist proxy and a set
+> of bug fixes; the changes are offered upstream in
+> [repman-io/repman#717](https://github.com/repman-io/repman/pull/717). Existing installations can
+> switch to it without losing data, see [Switching from repman-io/repman](#switching-from-repman-iorepman).
 
 **Repman** is a PHP repository manager. Main features:
 
@@ -23,7 +24,7 @@ Documentation: [https://repman.io/docs/](https://repman.io/docs/)
 
 ## Requirements
 
-- PHP >= 7.4
+- PHP >= 8.4 with the `intl`, `mbstring`, `pdo_pgsql` and `zip` extensions
 - PostgreSQL 11 - 17
 - `var` dir must be writeable
 - any web server
@@ -34,6 +35,71 @@ Documentation: [https://repman.io/docs/](https://repman.io/docs/)
 
 [https://repman.io/docs/standalone/#docker-installation](https://repman.io/docs/standalone/#docker-installation)
 
+`docker-compose.yml` builds the image from this checkout: `docker compose up -d --build`.
+
+#### Switching from repman-io/repman
+
+The fork reads the same database and `var/` layout, so an existing installation switches with the
+upgrade below; only the source of the code changes. In the checkout your installation runs from:
+
+```bash
+cp .env.docker .env.docker.mine                       # your settings; the file is tracked by git
+git stash                                             # parks any local edits (git stash pop brings them back)
+git remote add fork https://github.com/s00d/repman.git
+git fetch fork
+git checkout -B master fork/master                    # var/ is untracked and stays as it is
+cp .env.docker.mine .env.docker                       # put your settings back
+```
+
+If you ran the `buddy/repman` image without a git checkout, clone this repository and move your
+`var/` directory and `.env.docker` into the clone before the upgrade steps; run `docker compose` from
+the clone.
+
+#### Upgrading a Docker installation
+
+These steps were tested by upgrading a `buddy/repman:1.3.4` installation with organizations,
+packages, tokens, members and download statistics; all data was kept. See [UPGRADE.md](UPGRADE.md)
+for what changed.
+
+1. Back up the database and `var/` (packages, proxy cache, logs) while the old version runs:
+
+   ```bash
+   docker compose exec -T database pg_dump -U main -d main -Fc > repman-backup.dump
+   tar czf repman-var-backup.tgz var
+   ```
+
+2. Stop the stack. Containers are removed, the database volume and `var/` are kept:
+
+   ```bash
+   docker compose down
+   ```
+
+3. Update the checkout (`git pull`, or check out the release tag). Keep your `.env.docker`; if it
+   lists `pear` in `APP_ALLOWED_PACKAGE_TYPES`, remove it (Composer 2 dropped PEAR). `GA_TRACKING`
+   is no longer used.
+
+4. Build and start the new version. On start the app hands `var/` to `www-data`, rebuilds the cache
+   and runs the database migrations:
+
+   ```bash
+   docker compose up -d --build
+   docker compose logs -f app   # wait for "ready to handle connections"
+   ```
+
+5. Check the result and resynchronize packages, so they pick up the fixes of this release:
+
+   ```bash
+   docker compose exec app su-exec www-data bin/console doctrine:migrations:status
+   docker compose exec app su-exec www-data bin/console repman:package:synchronize-all
+   ```
+
+   Packages whose first synchronization failed have no name yet and are skipped by
+   `synchronize-all`; use *Synchronize* on the package list for those.
+
+Rolling back: `docker compose down`, check out the previous version, start it, then restore the
+database with `docker compose exec -T database pg_restore -U main -d main --clean < repman-backup.dump`
+and `var/` from the archive.
+
 ### Ansible
 
 [https://repman.io/docs/standalone/#ansible-playbooks-installation](https://repman.io/docs/standalone/#ansible-playbooks-installation)
@@ -41,7 +107,7 @@ Documentation: [https://repman.io/docs/](https://repman.io/docs/)
 ### Manual
 
 ```bash
-git clone git@github.com:repman-io/repman.git
+git clone git@github.com:s00d/repman.git
 cd repman
 composer install
 ```
@@ -105,7 +171,7 @@ symfony proxy:domain:attach your-organization.repman
 - `bin/console repman:metadata:clear-cache` - clear packages metadata cache (json files)
 - `bin/console repman:create:admin <email> [<password>]` - create a new user with admin privileges
 - `bin/console repman:create:user <email> [<password>]` - create a new (normal) user
-- `bin/console repman:proxy:sync-releases` - sync proxy releases with packagist.org
+- `bin/console repman:proxy:sync-releases` - deprecated, does nothing (packagist.org no longer serves its release feed to Repman)
 - `bin/console repman:security:scan-all` - scan all synchronized packages
 - `bin/console repman:security:update-db` - update security advisories database, scan all packages if updated
 - `bin/console repman:package:synchronize <packageId>` - synchronize given package
@@ -231,7 +297,7 @@ docker-compose up
 In case of any problems, you can use:
 
 - Our documentation: [repman.io/docs](https://repman.io/docs/) - it is also open sourced [github.com/repman-io/repman-docs-pages](https://github.com/repman-io/repman-docs-pages)
-- GitHub issue list: [github.com/repman-io/repman/issues](https://github.com/repman-io/repman/issues) - feel free to create a new issue there
+- GitHub issue list: [github.com/s00d/repman/issues](https://github.com/s00d/repman/issues) - feel free to create a new issue there
 - E-mail: contact [at] repman.io
 
 ## License

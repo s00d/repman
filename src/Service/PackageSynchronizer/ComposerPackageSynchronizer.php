@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Buddy\Repman\Service\PackageSynchronizer;
 
 use Buddy\Repman\Entity\Organization\Package;
-use Buddy\Repman\Entity\Organization\Package\Abandoned;
 use Buddy\Repman\Entity\Organization\Package\Link;
 use Buddy\Repman\Entity\Organization\Package\Version;
 use Buddy\Repman\Repository\PackageRepository;
@@ -21,7 +20,6 @@ use Composer\Factory;
 use Composer\IO\BufferIO;
 use Composer\IO\IOInterface;
 use Composer\Package\CompletePackage;
-use Composer\Package\Link as ComposerLink;
 use Composer\Package\PackageInterface;
 use Composer\Repository\RepositoryFactory;
 use Composer\Repository\RepositoryInterface;
@@ -31,6 +29,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class ComposerPackageSynchronizer implements PackageSynchronizer
 {
+    private const VCS_TYPES = ['vcs', 'git', 'github', 'gitlab', 'bitbucket'];
+
     private PackageManager $packageManager;
     private PackageNormalizer $packageNormalizer;
     private PackageRepository $packageRepository;
@@ -45,7 +45,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
         PackageRepository $packageRepository,
         Storage $distStorage,
         UserOAuthTokenRefresher $tokenRefresher,
-        string $gitlabUrl
+        string $gitlabUrl,
     ) {
         $this->packageManager = $packageManager;
         $this->packageNormalizer = $packageNormalizer;
@@ -60,8 +60,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
     {
         try {
             $io = $this->createIO($package);
-            /** @var RepositoryInterface $repository */
-            $repository = current(RepositoryFactory::defaultRepos($io, $this->createConfig($package, $io)));
+            $repository = $this->createRepository($package, $io);
             $json = ['packages' => []];
             $packages = $repository->getPackages();
 
@@ -88,18 +87,18 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
             $latest = current($packages);
 
             foreach ($packages as $p) {
+                // artifacts only have a checksum: the dist is stored under it, and the client builds the
+                // download URL from the reference, so without one it asks for ".../<version>/.zip"
+                if ($p->getDistReference() === null && $p->getDistSha1Checksum() !== null) {
+                    $p->setDistReference($p->getDistSha1Checksum());
+                }
                 $json['packages'][$p->getPrettyName()][$p->getPrettyVersion()] = $this->packageNormalizer->normalize($p);
                 if (Comparator::greaterThan($p->getVersion(), $latest->getVersion()) && $p->getStability() === Version::STABILITY_STABLE) {
                     $latest = $p;
                 }
             }
 
-            /** @var string|null $name */
             $name = $latest->getPrettyName();
-
-            if ($name === null) {
-                throw new \RuntimeException('Missing package name in latest version. Revision: '.$latest->getDistReference());
-            }
 
             if (preg_match(Package::NAME_PATTERN, $name, $matches) !== 1) {
                 throw new \RuntimeException("Package name {$name} is invalid");
@@ -117,11 +116,11 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                         'packageName' => $p->getPrettyName(),
                         'prettyVersion' => $p->getPrettyVersion(),
                         'version' => $p->getVersion(),
-                        'ref' => $p->getDistReference() ?? $p->getDistSha1Checksum(),
-                        'distType' => $p->getDistType(),
+                        'ref' => $p->getDistReference() ?? $p->getDistSha1Checksum() ?? '',
+                        'distType' => $p->getDistType() ?? 'zip',
                         'distUrl' => $p->getDistUrl(),
                         'authHeaders' => $this->getAuthHeaders($package),
-                        'releaseDate' => \DateTimeImmutable::createFromMutable($p->getReleaseDate() ?? new \DateTime()),
+                        'releaseDate' => \DateTimeImmutable::createFromInterface($p->getReleaseDate() ?? new \DateTimeImmutable()),
                         'stability' => $p->getStability(),
                     ];
                 }
@@ -168,14 +167,17 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                     $this->readmeExtractor->extractReadme($package, $dist);
 
                     // Set the version links
-                    foreach (['requires', 'devRequires', 'provides', 'replaces', 'conflicts'] as $type) {
-                        $functionName = 'get'.$type;
-                        if (method_exists($latest, $functionName)) {
-                            /** @var ComposerLink $link */
-                            foreach ($latest->{$functionName}() as $link) {
-                                $package->addLink(new Link(Uuid::uuid4(), $package, $type, $link->getTarget(), $link->getPrettyConstraint()));
-                                $encounteredLinks[$type.'-'.$link->getTarget()] = true;
-                            }
+                    $links = [
+                        'requires' => $latest->getRequires(),
+                        'devRequires' => $latest->getDevRequires(),
+                        'provides' => $latest->getProvides(),
+                        'replaces' => $latest->getReplaces(),
+                        'conflicts' => $latest->getConflicts(),
+                    ];
+                    foreach ($links as $type => $typeLinks) {
+                        foreach ($typeLinks as $link) {
+                            $package->addLink(new Link(Uuid::uuid4(), $package, $type, $link->getTarget(), $link->getPrettyConstraint()));
+                            $encounteredLinks[$type.'-'.$link->getTarget()] = true;
                         }
                     }
 
@@ -213,7 +215,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                 $latest->getStability() === Version::STABILITY_STABLE ? $latest->getPrettyVersion() : 'no stable release',
                 $encounteredVersions,
                 $encounteredLinks,
-                \DateTimeImmutable::createFromMutable($latest->getReleaseDate() ?? new \DateTime()),
+                \DateTimeImmutable::createFromInterface($latest->getReleaseDate() ?? new \DateTimeImmutable()),
             );
 
             $this->packageManager->saveProvider($json, $package->organizationAlias(), $name);
@@ -271,6 +273,23 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
         return $package->oauthToken()->accessToken($this->tokenRefresher);
     }
 
+    private function createRepository(Package $package, IOInterface $io): RepositoryInterface
+    {
+        $config = $this->createConfig($package, $io);
+        $manager = RepositoryFactory::manager($io, $config);
+        // VCS repositories ignore a hardcoded composer.json "version", see PreferTagVcsRepository
+        foreach (self::VCS_TYPES as $type) {
+            $manager->setRepositoryClass($type, PreferTagVcsRepository::class);
+        }
+
+        $repository = current(RepositoryFactory::defaultRepos($io, $config, $manager));
+        if (!$repository instanceof RepositoryInterface) {
+            throw new \RuntimeException('No repository configured for package');
+        }
+
+        return $repository;
+    }
+
     private function createConfig(Package $package, IOInterface $io): Config
     {
         unset(Config::$defaultRepositories['packagist.org']);
@@ -278,7 +297,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
         $config->merge([
             'repositories' => [
                 [
-                    'type' => strpos($package->type(), '-oauth') !== false ? 'vcs' : $package->type(),
+                    'type' => $this->repositoryType($package),
                     'url' => $package->repositoryUrl(),
                 ],
             ],
@@ -292,5 +311,10 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
         }
 
         return $config;
+    }
+
+    private function repositoryType(Package $package): string
+    {
+        return strpos($package->type(), '-oauth') !== false ? 'vcs' : $package->type();
     }
 }

@@ -6,6 +6,14 @@
 !/docker/nginx/cert
 /tests
 /var/*
+/vendor
+/node_modules
+/.env.local
+/.env.local.php
+/.env.*.local
+/.phpunit.cache
+/rector.php
+/composer-dependency-analyser.php
 
 ###> php-cs-fixer/shim ###
 /.php-cs-fixer.cache

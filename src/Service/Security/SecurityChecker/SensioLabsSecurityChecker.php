@@ -148,7 +148,7 @@ final class SensioLabsSecurityChecker implements SecurityChecker
     }
 
     /**
-     * @return \RecursiveIteratorIterator<\RecursiveCallbackFilterIterator>
+     * @return \RecursiveIteratorIterator<\RecursiveCallbackFilterIterator<mixed, mixed, \RecursiveDirectoryIterator>>
      */
     private function getDatabase(): \RecursiveIteratorIterator
     {

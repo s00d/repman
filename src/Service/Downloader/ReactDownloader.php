@@ -17,8 +17,12 @@ use React\Socket\Connector;
 
 final class ReactDownloader implements Downloader
 {
+    private const ATTEMPTS = 3;
+    private const MAX_RETRY_DELAY_SECONDS = 5;
+
     private LoopInterface $loop;
     private Browser $browser;
+    /** @var Queue<mixed> */
     private Queue $queue;
 
     public function __construct()
@@ -26,7 +30,7 @@ final class ReactDownloader implements Downloader
         $this->loop = Loop::get();
         $this->browser = new Browser($this->loop, new Connector($this->loop, ['timeout' => 10]));
         $this->queue = new Queue(100, null, function (string $type, string $url, array $headers = []): PromiseInterface {
-            return $this->browser->{$type}($url, array_merge($headers, ['User-Agent' => $this->userAgent()]));
+            return $this->browser->request(strtoupper($type), $url, array_merge($headers, ['User-Agent' => $this->userAgent()]));
         });
     }
 
@@ -35,20 +39,29 @@ final class ReactDownloader implements Downloader
      *
      * @return Option<resource>
      */
-    public function getContents(string $url, array $headers = [], callable $notFoundHandler = null): Option
+    public function getContents(string $url, array $headers = [], ?callable $notFoundHandler = null): Option
     {
-        $retries = 3;
-        do {
+        for ($attempt = 1; $attempt <= self::ATTEMPTS; ++$attempt) {
             $stream = @fopen($url, 'r', false, $this->createContext($headers));
             if ($stream !== false) {
                 return Option::some($stream);
             }
 
-            if (isset($http_response_header) && $this->getStatusCode($http_response_header) === 404 && $notFoundHandler !== null) {
+            $responseHeaders = http_get_last_response_headers() ?? [];
+            $status = $this->getStatusCode($responseHeaders);
+            if ($status === 404 && $notFoundHandler !== null) {
                 $notFoundHandler();
             }
-            --$retries;
-        } while ($retries > 0);
+
+            // a client error answers the same on every attempt; only rate limits and server errors may pass
+            if ($status >= 400 && $status < 500 && $status !== 429) {
+                break;
+            }
+
+            if ($attempt < self::ATTEMPTS && $status !== 0) {
+                usleep($this->retryDelay($responseHeaders, $attempt));
+            }
+        }
 
         return Option::none();
     }
@@ -57,11 +70,20 @@ final class ReactDownloader implements Downloader
     {
         ($this->queue)('get', $url, $headers)
             ->then(function (ResponseInterface $response) use ($onFulfilled): void {
-                $stream = $response->getBody()->detach();
-                if (!is_resource($stream)) {
+                // 304 Not Modified to a conditional request: what is stored is current
+                if ($response->getStatusCode() !== 200) {
                     return;
                 }
-                $onFulfilled($stream);
+                // the browser buffers the body, and a buffered body cannot be detached into a stream
+                $stream = fopen('php://temp', 'r+b');
+                if ($stream === false) {
+                    return;
+                }
+                fwrite($stream, (string) $response->getBody());
+                rewind($stream);
+                $onFulfilled($stream, $response->getHeaderLine('Last-Modified'));
+            }, static function (\Throwable $reason): void {
+                // a failed refresh keeps what is stored; react/promise 3 logs rejections nobody handles
             });
     }
 
@@ -75,6 +97,7 @@ final class ReactDownloader implements Downloader
             if ($lastModified !== []) {
                 $onFulfilled((int) strtotime($lastModified[0]));
             }
+        }, static function (\Throwable $reason): void {
         });
     }
 
@@ -111,12 +134,35 @@ final class ReactDownloader implements Downloader
     }
 
     /**
-     * @param mixed[] $headers
+     * Status of the last response: after redirects the headers hold one status line per hop.
+     *
+     * @param string[] $headers
      */
     private function getStatusCode(array $headers): int
     {
-        preg_match('{HTTP\/\S*\s(\d{3})}', $headers[0], $match);
+        $status = 0;
+        foreach ($headers as $header) {
+            if (preg_match('{^HTTP/\S*\s(\d{3})}', $header, $match) === 1) {
+                $status = (int) $match[1];
+            }
+        }
 
-        return (int) $match[1];
+        return $status;
+    }
+
+    /**
+     * Microseconds to wait before the next attempt: Retry-After when the server sends one, else a short backoff.
+     *
+     * @param string[] $headers
+     */
+    private function retryDelay(array $headers, int $attempt): int
+    {
+        foreach ($headers as $header) {
+            if (preg_match('{^Retry-After:\s*(\d+)\s*$}i', $header, $match) === 1) {
+                return min((int) $match[1], self::MAX_RETRY_DELAY_SECONDS) * 1_000_000;
+            }
+        }
+
+        return 250_000 * 2 ** ($attempt - 1);
     }
 }

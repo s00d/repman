@@ -12,6 +12,9 @@ use Symfony\Component\Intl\Timezones;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Timezone;
 
+/**
+ * @extends AbstractType<mixed>
+ */
 class ChangeTimezoneType extends AbstractType
 {
     public function getBlockPrefix(): string

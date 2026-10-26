@@ -14,10 +14,11 @@ use Buddy\Repman\Service\PackageSynchronizer\ComposerPackageSynchronizer;
 use Buddy\Repman\Service\User\UserOAuthTokenRefresher;
 use Buddy\Repman\Tests\Doubles\FakeDownloader;
 use Buddy\Repman\Tests\MotherObject\PackageMother;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Process\Process;
 
 final class ComposerPackageSynchronizerTest extends TestCase
 {
@@ -31,7 +32,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
     protected function setUp(): void
     {
         $this->baseDir = sys_get_temp_dir().'/repman';
-        $repoFilesystem = new Filesystem(new Local($this->baseDir));
+        $repoFilesystem = new Filesystem(new LocalFilesystemAdapter($this->baseDir));
         $this->downloader = new FakeDownloader();
         $distStorage = new Storage($this->downloader, $repoFilesystem);
         $this->synchronizer = new ComposerPackageSynchronizer(
@@ -39,7 +40,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
             new PackageNormalizer(),
             $this->repoMock = $this->createMock(PackageRepository::class),
             $distStorage,
-            $this->createMock(UserOAuthTokenRefresher::class),
+            self::createStub(UserOAuthTokenRefresher::class),
             'gitlab.com'
         );
         $this->resourcesDir = dirname(__DIR__, 3).'/Resources/';
@@ -50,19 +51,61 @@ final class ComposerPackageSynchronizerTest extends TestCase
         $path = $this->baseDir.'/buddy/p/repman-io/repman.json';
         @unlink($path);
 
-        $basePath = dirname(__DIR__, 4);
+        // a plain directory (no VCS), so the result does not depend on the git state of this checkout
+        $basePath = sys_get_temp_dir().'/repman-path-'.uniqid('', true);
+        mkdir($basePath);
+        file_put_contents($basePath.'/composer.json', (string) json_encode(['name' => 'repman-io/repman', 'version' => '1.2.3']));
         $this->downloader->addContent($basePath, 'foobar');
 
         $package = PackageMother::withOrganization('path', $basePath, 'buddy');
         $this->synchronizer->synchronize($package);
 
+        self::assertTrue($package->isSynchronizedSuccessfully(), (string) $this->getProperty($package, 'lastSyncError'));
         self::assertFileExists($path);
 
         $json = unserialize((string) file_get_contents($path));
-        self::assertTrue($json['packages']['repman-io/repman'] !== []);
+        self::assertSame(['1.2.3'], array_keys($json['packages']['repman-io/repman']));
         @unlink($path);
+        unlink($basePath.'/composer.json');
+        rmdir($basePath);
 
         self::assertCount(1, $package->versions());
+    }
+
+    public function testSynchronizeGitPackagePrefersTagOverComposerJsonVersion(): void
+    {
+        $repoDir = sys_get_temp_dir().'/repman-git-'.uniqid('', true);
+        mkdir($repoDir);
+        $git = static function (string ...$command) use ($repoDir): void {
+            $process = new Process(['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'init.defaultBranch=main', ...$command], $repoDir);
+            $process->mustRun();
+        };
+
+        // a hardcoded version that no longer matches the tags made Composer skip them silently
+        file_put_contents($repoDir.'/composer.json', (string) json_encode(['name' => 'buddy-works/tagged', 'version' => '1.0.0', 'license' => 'MIT']));
+        $git('init');
+        $git('add', 'composer.json');
+        $git('commit', '-m', 'initial');
+        $git('tag', '1.0.0');
+        file_put_contents($repoDir.'/README.md', "release 1.0.1\n");
+        $git('add', 'README.md');
+        $git('commit', '-m', 'bump');
+        $git('tag', '1.0.1');
+
+        $path = $this->baseDir.'/buddy/p/buddy-works/tagged.json';
+        @unlink($path);
+
+        $package = PackageMother::withOrganization('vcs', $repoDir, 'buddy');
+        $this->synchronizer->synchronize($package);
+
+        self::assertTrue($package->isSynchronizedSuccessfully(), (string) $this->getProperty($package, 'lastSyncError'));
+        $json = unserialize((string) file_get_contents($path));
+        self::assertArrayHasKey('1.0.0', $json['packages']['buddy-works/tagged']);
+        self::assertArrayHasKey('1.0.1', $json['packages']['buddy-works/tagged']);
+        self::assertSame('1.0.1', $this->getProperty($package, 'latestReleasedVersion'));
+
+        @unlink($path);
+        (new \Symfony\Component\Filesystem\Filesystem())->remove($repoDir);
     }
 
     public function testSynchronizeError(): void
@@ -86,6 +129,13 @@ final class ComposerPackageSynchronizerTest extends TestCase
         $json = unserialize((string) file_get_contents($path));
         self::assertCount(4, $json['packages']['buddy-works/alpha']);
         @unlink($path);
+
+        // the served reference is what the dist is stored under, so the download URL resolves
+        foreach ($json['packages']['buddy-works/alpha'] as $data) {
+            self::assertMatchesRegularExpression('/^[a-f0-9]{40}$/', $data['dist']['reference']);
+            self::assertSame($data['dist']['shasum'], $data['dist']['reference']);
+            self::assertFileExists(sprintf('%s/buddy/dist/buddy-works/alpha/%s_%s.zip', $this->baseDir, $data['version_normalized'], $data['dist']['reference']));
+        }
 
         self::assertCount(4, $package->versions());
         $versionStrings = array_map(function (Version $version): string {
@@ -143,7 +193,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
         self::assertFileExists($path);
 
         $json = unserialize((string) file_get_contents($path));
-        self::assertTrue($json['packages']['repman-io/repman'] !== []);
+        self::assertNotSame([], $json['packages']['repman-io/repman']);
         @unlink($path);
     }
 
@@ -159,7 +209,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
         self::assertFileExists($path);
 
         $json = unserialize((string) file_get_contents($path));
-        self::assertTrue($json['packages']['repman-io/repman'] !== []);
+        self::assertNotSame([], $json['packages']['repman-io/repman']);
         @unlink($path);
     }
 
@@ -175,7 +225,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
         self::assertFileExists($path);
 
         $json = unserialize((string) file_get_contents($path));
-        self::assertTrue($json['packages']['repman-io/repman'] !== []);
+        self::assertNotSame([], $json['packages']['repman-io/repman']);
         @unlink($path);
     }
 
