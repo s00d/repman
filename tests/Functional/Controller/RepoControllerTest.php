@@ -289,4 +289,21 @@ final class RepoControllerTest extends FunctionalTestCase
         }
         ', $this->client->getResponse()->getContent());
     }
+
+    public function testAuthenticationFailureIsNotCacheable(): void
+    {
+        $adminId = $this->createAndLoginAdmin('test@buddy.works', 'secret');
+        $this->fixtures->createToken($this->fixtures->createOrganization('buddy', $adminId), 'secret-org-token');
+
+        $this->client->request('GET', '/packages.json', [], [], [
+            'HTTP_HOST' => 'buddy.repo.repman.wip',
+            'PHP_AUTH_USER' => 'token',
+            'PHP_AUTH_PW' => 'wrong-token',
+        ]);
+
+        self::assertResponseStatusCodeSame(403);
+        $cacheControl = (string) $this->client->getResponse()->headers->get('Cache-Control');
+        self::assertStringNotContainsString('public', $cacheControl);
+        self::assertStringContainsString('no-store', $cacheControl);
+    }
 }

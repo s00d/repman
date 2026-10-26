@@ -57,9 +57,13 @@ final class AnonymousOrganizationUserAuthenticator extends AbstractAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
-        return (new JsonResponse([
+        // never cacheable: a shared cache would serve this refusal to correctly authenticated clients too
+        $response = (new JsonResponse([
             'message' => strtr($exception->getMessageKey(), $exception->getMessageData()),
-        ], Response::HTTP_FORBIDDEN))->setMaxAge(60)->setPublic();
+        ], Response::HTTP_FORBIDDEN))->setPrivate();
+        $response->headers->addCacheControlDirective('no-store');
+
+        return $response;
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
