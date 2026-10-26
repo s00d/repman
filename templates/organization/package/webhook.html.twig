@@ -71,13 +71,13 @@
                 <tbody>
                 {% for request in recentRequests %}
                     <tr>
-                        <td class="whitespace-nowrap">
+                        <td data-label="Date" class="whitespace-nowrap">
                             <span title="{{ request.date|date_time }} {{ gmt_offset() }}">
                                 {{ request.date|date_time|time_diff }}
                             </span>
                         </td>
-                        <td>{{ request.ip | default('n/a') }}</td>
-                        <td class="break-all">{{ request.userAgent | default('n/a') }}</td>
+                        <td data-label="IP">{{ request.ip | default('n/a') }}</td>
+                        <td data-label="User agent" class="break-all">{{ request.userAgent | default('n/a') }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

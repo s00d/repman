@@ -12,9 +12,9 @@
 {% block content %}
 <form action="{{ path('organization_packages', {organization: organization.alias}) }}" method="get" class="mb-4 flex flex-wrap items-center gap-3">
     <label for="package-search">Search:</label>
-    <input type="search" id="package-search" name="search" value="{{ filter.searchTerm }}" class="form-control w-64" />
+    <input type="search" id="package-search" name="search" value="{{ filter.searchTerm }}" class="form-control min-w-0 flex-1 sm:w-64 sm:flex-none" />
 
-    <label class="ml-auto flex items-center gap-2">
+    <label class="flex items-center gap-2 sm:ml-auto">
         Show
         <input type="number" name="limit" value="{{ filter.limit }}" class="form-control w-20" min="1" />
         entries
@@ -57,13 +57,13 @@
                             <div class="indeterminate mt-2" role="progressbar" aria-label="Synchronizing"></div>
                         {% endif %}
                     </td>
-                    <td>{{ package.latestReleasedVersion }}</td>
-                    <td class="whitespace-nowrap">
+                    <td data-label="Latest">{{ package.latestReleasedVersion }}</td>
+                    <td data-label="Released" class="whitespace-nowrap">
                         {% if package.latestReleaseDate %}
                             <span title="{{ package.latestReleaseDate|date_time_utc }} ({{ gmt_offset() }})">{{ package.latestReleaseDate|date_time_utc|time_diff }}</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td data-label="Description">
                         {% if package.lastSyncError %}
                             <span class="badge badge-danger">Synchronization error</span>
                             <span class="text-xs text-slate-500 italic" title="{{ package.lastSyncAt|date_time }} ({{ gmt_offset() }})">{{ package.lastSyncAt|date_time|time_diff }}</span>
@@ -71,11 +71,11 @@
                                 {{ package.lastSyncError | nl2br }}
                             </div>
                         {% else %}
-                            {{ package.description }}
+                            {{ package.description|striptags }}
                         {% endif %}
                     </td>
                     {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}
-                        <td class="text-center">
+                        <td data-label="Webhook" class="text-center">
                             {% if package.webhookCreatedAt is not empty %}
                                 <span class="font-semibold" title="{{ package.webhookCreatedAt | date_time }} ({{ gmt_offset() }})">
                                     created
@@ -84,7 +84,7 @@
                                 <small>N/A</small>
                             {% endif %}
                         </td>
-                        <td class="text-center">
+                        <td data-label="Security" class="text-center">
                             {% if not package.isEnabledSecurityScan or package.isSynchronizedSuccessfully %}
                                 {% include 'component/scanBadge.html.twig' %}
                             {% endif %}

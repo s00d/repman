@@ -17,10 +17,10 @@
         <tbody>
             {% for user in users %}
                 <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.roles | join(', ') }}</td>
-                    <td>{{ user.status }}</td>
+                    <td data-label="ID">{{ user.id }}</td>
+                    <td data-label="E-mail">{{ user.email }}</td>
+                    <td data-label="Roles">{{ user.roles | join(', ') }}</td>
+                    <td data-label="Status">{{ user.status }}</td>
                     <td>
                         {% if user.status == 'enabled' %}
                             <button

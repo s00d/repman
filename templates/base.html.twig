@@ -2,7 +2,7 @@
 {% macro nav_link(route, params, icon, label, current_route) %}
     <a class="nav-link {{ current_route == route ? 'active' : '' }}" href="{{ path(route, params) }}"{% if current_route == route %} aria-current="page"{% endif %}>
         {% include 'svg/' ~ icon ~ '.svg' %}
-        <span class="hidden sm:inline">{{ label }}</span>
+        <span>{{ label }}</span>
     </a>
 {% endmacro %}
 {% import _self as nav %}
@@ -32,7 +32,7 @@
     </header>
     {% block menu %}
     <nav class="border-b border-slate-200 bg-white" aria-label="Main">
-        <div class="mx-auto flex max-w-7xl flex-wrap px-4">
+        <div class="mx-auto flex max-w-7xl overflow-x-auto px-2 sm:px-4">
             {% if organization is defined %}
                 {{ nav.nav_link('organization_overview', {organization: organization.alias}, 'home', 'Overview', current_route) }}
                 {{ nav.nav_link('organization_packages', {organization: organization.alias}, 'package', 'Packages', current_route) }}
@@ -50,7 +50,7 @@
     </nav>
     {% endblock menu %}
     {% block page %}
-    <main class="mx-auto max-w-7xl px-4 py-6">
+    <main class="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
         {% include 'component/flash.html.twig' %}
 
         <div class="card">

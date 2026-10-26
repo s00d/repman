@@ -6,8 +6,8 @@
 
 {% block body %}
     <main class="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-10">
-        <a href="{{ url('index') }}" class="mb-6 self-center">
-            <img src="{{ asset('repman-vertical.svg') }}" class="h-40" alt="Repman - PHP Repository manager" />
+        <a href="{{ url('index') }}" class="mb-4 self-center sm:mb-6">
+            <img src="{{ asset('repman-vertical.svg') }}" class="h-24 sm:h-40" alt="Repman - PHP Repository manager" />
         </a>
         {% block card %}{% endblock %}
     </main>

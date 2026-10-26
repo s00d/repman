@@ -16,9 +16,9 @@
         <tbody>
         {% for package in packages %}
             <tr>
-                <td>{{ package }}</td>
-                <td >{{ (downloads[package].downloads ?? 0)|number_format }}</td>
-                <td>
+                <td data-label="Name">{{ package }}</td>
+                <td data-label="Downloads" >{{ (downloads[package].downloads ?? 0)|number_format }}</td>
+                <td data-label="Last download">
                     {% if downloads[package] is defined %}
                         <span title="{{ downloads[package].lastDownload|date_time }} ({{ gmt_offset() }})">
                             {{ downloads[package].lastDownload|date_time|time_diff }}

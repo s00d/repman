@@ -24,12 +24,12 @@
         <tbody>
             {% for result in results %}
                 <tr>
-                    <td class="whitespace-nowrap">
+                    <td data-label="Date" class="whitespace-nowrap">
                         <span title="{{ result.date|date_time }} ({{ gmt_offset() }})">
                             {{ result.date|date_time|time_diff }}
                         </span>
                     </td>
-                    <td>
+                    <td data-label="Status">
                         {% if result.isOk %}
                             <span class="badge badge-success">{{ result.status }}</span>
                         {% elseif result.isPending or result.isNotAvailable %}
@@ -38,8 +38,8 @@
                             <span class="badge badge-danger">{{ result.status }}</span>
                         {% endif %}
                     </td>
-                    <td>{{ result.version }}</td>
-                    <td>
+                    <td data-label="Version">{{ result.version }}</td>
+                    <td data-label="Content">
                         {% include 'organization/package/scanResultContent.html.twig' with {'result': result.content, 'simple': false} %}
                     </td>
                 </tr>

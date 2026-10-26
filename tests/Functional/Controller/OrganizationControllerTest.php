@@ -482,7 +482,7 @@ final class OrganizationControllerTest extends FunctionalTestCase
             new Link('requires', 'buddy-works/target', '^1.5'),
             new Link('suggests', 'buddy-works/buddy', '^2.0'), // Suggest self to test dependant link
         ];
-        $this->fixtures->syncPackageWithData($packageId, 'buddy-works/buddy', 'Test', '1.1.1', new \DateTimeImmutable(), $versions, $links, 'This is a readme');
+        $this->fixtures->syncPackageWithData($packageId, 'buddy-works/buddy', 'Test <b>bold</b><script>alert(1)</script>', '1.1.1', new \DateTimeImmutable(), $versions, $links, 'This is a readme');
         $this->fixtures->addScanResult($packageId, 'ok');
 
         $crawler = $this->client->request('GET', $this->urlTo('organization_package_details', [
@@ -492,7 +492,9 @@ final class OrganizationControllerTest extends FunctionalTestCase
 
         self::assertTrue($this->client->getResponse()->isOk());
         self::assertStringContainsString('buddy-works/buddy details', $this->lastResponseBody());
-        self::assertStringContainsString('Test', $this->lastResponseBody());
+        // composer.json descriptions are plain text: markup is dropped, neither rendered nor shown escaped
+        self::assertStringContainsString('<p>Test boldalert(1)</p>', $this->lastResponseBody());
+        self::assertStringNotContainsString('&lt;b&gt;', $this->lastResponseBody());
         self::assertStringContainsString('Available versions', $this->lastResponseBody());
         foreach ($versions as $version) {
             self::assertStringContainsString($version->version(), $this->lastResponseBody());

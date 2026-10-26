@@ -17,10 +17,10 @@
         <tbody>
             {% for organization in organizations %}
                 <tr>
-                    <td>{{ organization.id }}</td>
-                    <td>{{ organization.name }}</td>
-                    <td>{{ organization.alias }}</td>
-                    <td>{{ organization.packagesCount }}</td>
+                    <td data-label="Id">{{ organization.id }}</td>
+                    <td data-label="Name">{{ organization.name }}</td>
+                    <td data-label="Alias">{{ organization.alias }}</td>
+                    <td data-label="Packages">{{ organization.packagesCount }}</td>
                     <td>
                         <button
                             class="btn btn-danger btn-sm"

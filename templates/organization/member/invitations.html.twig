@@ -21,8 +21,8 @@
         <tbody>
             {% for invitation in invitations %}
                 <tr>
-                    <td>{{ invitation.email }}</td>
-                    <td>{{ invitation.role }}</td>
+                    <td data-label="E-mail">{{ invitation.email }}</td>
+                    <td data-label="Role">{{ invitation.role }}</td>
                     <td>
                         <button
                                 class="btn btn-danger btn-sm"

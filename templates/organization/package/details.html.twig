@@ -31,7 +31,7 @@
             </div>
             <div class="sm:col-span-2">
                 <h4>Description</h4>
-                <p>{{ package.description }}</p>
+                <p>{{ package.description|striptags }}</p>
             </div>
 
             <div>
@@ -98,15 +98,15 @@
                     <tbody>
                     {% for version in versions %}
                         <tr>
-                            <td>{{ version.version }}</td>
-                            <td class="whitespace-nowrap">
+                            <td data-label="Version">{{ version.version }}</td>
+                            <td data-label="Released" class="whitespace-nowrap">
                                 <span title="{{ version.date|date_time_utc }} ({{ gmt_offset() }})">
                                     {{ version.date|date_time_utc|time_diff }}
                                 </span>
                             </td>
-                            <td class="font-mono text-xs break-all">{{ version.reference }}</td>
-                            <td class="whitespace-nowrap">{% if version.size > 0 %}{{ version.size | format_bytes }}{% else %}<span class="text-slate-500" title="No archive, Composer installs this version from the repository">source</span>{% endif %}</td>
-                            <td class="min-w-72">
+                            <td data-label="Reference" class="font-mono text-xs break-all">{{ version.reference }}</td>
+                            <td data-label="Size" class="whitespace-nowrap">{% if version.size > 0 %}{{ version.size | format_bytes }}{% else %}<span class="text-slate-500" title="No archive, Composer installs this version from the repository">source</span>{% endif %}</td>
+                            <td class="md:min-w-72">
                                 {% include 'component/copyInput.html.twig' with {id: 'version-' ~ loop.index, value: 'composer require ' ~ package.name ~ ':' ~ version.version, label: 'Composer require command for ' ~ version.version} %}
                             </td>
                         </tr>

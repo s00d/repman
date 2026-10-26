@@ -14,18 +14,18 @@
             {% for token in tokens %}
                 {% set params = route_params|default({})|merge({token: token.value}) %}
                 <tr>
-                    <td>{{ token.name }}</td>
-                    <td class="whitespace-nowrap">
+                    <td data-label="Name">{{ token.name }}</td>
+                    <td data-label="Created" class="whitespace-nowrap">
                         <span title="{{ token.createdAt|date_time }} {{ gmt_offset() }}">
                             {{ token.createdAt|date_time|time_diff }}
                         </span>
                     </td>
-                    <td class="whitespace-nowrap">
+                    <td data-label="Last used" class="whitespace-nowrap">
                         <span title="{% if token.lastUsedAt %}{{ token.lastUsedAt|date_time }} {{ gmt_offset() }}{% endif %}">
                             {{ token.lastUsedAt ? token.lastUsedAt|date_time|time_diff : 'never' }}
                         </span>
                     </td>
-                    <td class="min-w-72" data-token-group>
+                    <td data-label="Value" class="md:min-w-72" data-token-group>
                         <button type="button" class="btn btn-primary btn-sm" data-reveal-token>
                             Show token
                         </button>

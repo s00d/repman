@@ -30,8 +30,8 @@
         <tbody>
             {% for member in members %}
                 <tr>
-                    <td>{{ member.email }}</td>
-                    <td>{{ member.role }}</td>
+                    <td data-label="E-mail">{{ member.email }}</td>
+                    <td data-label="Role">{{ member.role }}</td>
                     {% if is_granted('ROLE_ORGANIZATION_OWNER', organization) %}
                         <td>
                             <a class="btn btn-warning btn-sm" href="{{ path('organization_change_member_role', {organization: organization.alias, member: member.userId}) }}">
