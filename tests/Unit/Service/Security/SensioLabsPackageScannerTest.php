@@ -24,7 +24,7 @@ final class SensioLabsPackageScannerTest extends TestCase
     private const VERSION = '1.2.3';
 
     private SensioLabsPackageScanner $scanner;
-    private SecurityChecker $checkerMock;
+    private SecurityChecker&MockObject $checkerMock;
     /** @var ScanResultRepository|MockObject */
     private $repoMock;
 
@@ -44,6 +44,17 @@ final class SensioLabsPackageScannerTest extends TestCase
             ->method('add');
 
         $this->scanner->scan(PackageMother::withOrganization('path', '', 'buddy'));
+    }
+
+    public function testSkipPackageWithSecurityScanDisabled(): void
+    {
+        $this->repoMock->expects(self::never())->method('add');
+        $this->checkerMock->expects(self::never())->method('check');
+
+        $package = PackageMother::synchronized('buddy-works/repman', '1.0.0');
+        $package->update($package->repositoryUrl(), $package->keepLastReleases(), false);
+
+        $this->scanner->scan($package);
     }
 
     public function testScanVersionNotFound(): void
@@ -122,7 +133,11 @@ final class SensioLabsPackageScannerTest extends TestCase
         $this->assertPackageSecurity('error', $package);
     }
 
-    private function prepareScanner(string $fixtureType = 'repman'): SensioLabsPackageScanner
+    /**
+     * @param array<string, array<string, mixed>>|null $versions     provider data of buddy-works/repman, a stable 1.2.3 by default
+     * @param string[]                                 $distVersions collects the versions the scanner asks the dist of
+     */
+    private function prepareScanner(string $fixtureType = 'repman', ?array $versions = null, array &$distVersions = []): SensioLabsPackageScanner
     {
         $distFile = \realpath(__DIR__.'/../../../Resources/fixtures/buddy/dist/buddy-works/'.$fixtureType.'/1.2.3.0_ac7dcaf888af2324cd14200769362129c8dd8550.zip');
         $packageManager = $this->createMock(PackageManager::class);
@@ -130,7 +145,7 @@ final class SensioLabsPackageScannerTest extends TestCase
             [
                 new \DateTimeImmutable(),
                 [
-                    'buddy-works/repman' => [
+                    'buddy-works/repman' => $versions ?? [
                         self::VERSION => [
                             'version' => self::VERSION,
                             'dist' => [
@@ -145,7 +160,11 @@ final class SensioLabsPackageScannerTest extends TestCase
             ]
         );
 
-        $packageManager->method('distFilename')->willReturn(Option::some($distFile));
+        $packageManager->method('distFilename')->willReturnCallback(function (string $organization, string $package, string $version) use ($distFile, &$distVersions): Option {
+            $distVersions[] = $version;
+
+            return Option::some($distFile);
+        });
 
         $messageBusMock = $this->createMock(MessageBus::class);
         $messageBusMock
@@ -166,6 +185,55 @@ final class SensioLabsPackageScannerTest extends TestCase
             $messageBusMock,
             $distStorage
         );
+    }
+
+    public function testScanDefaultBranchWhenThereIsNoStableRelease(): void
+    {
+        $distVersions = [];
+        $scanner = $this->prepareScanner('repman', [
+            '1.0.0-beta' => self::devVersion('1.0.0-beta', '1.0.0.0-beta'),
+            'dev-main' => self::devVersion('dev-main', 'dev-main') + ['default-branch' => true],
+        ], $distVersions);
+        $package = PackageMother::synchronized('buddy-works/repman', 'no stable release');
+
+        $scanner->scan($package);
+
+        $this->assertPackageSecurity('ok', $package);
+        self::assertSame(['dev-main'], $distVersions);
+    }
+
+    public function testScanDevMasterSyncedBeforeComposer2(): void
+    {
+        $distVersions = [];
+        $scanner = $this->prepareScanner('repman', ['dev-master' => self::devVersion('dev-master', '9999999-dev')], $distVersions);
+        $package = PackageMother::synchronized('buddy-works/repman', 'no stable release');
+
+        $scanner->scan($package);
+
+        $this->assertPackageSecurity('ok', $package);
+        self::assertSame(['9999999-dev'], $distVersions);
+    }
+
+    public function testVersionWithoutDistIsNotAvailable(): void
+    {
+        $scanner = $this->prepareScanner('repman', [self::VERSION => ['version' => self::VERSION, 'version_normalized' => '1.2.3.0', 'source' => ['type' => 'git']]]);
+        $package = PackageMother::synchronized('buddy-works/repman', self::VERSION);
+
+        $scanner->scan($package);
+
+        $this->assertPackageSecurity('n/a', $package);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function devVersion(string $version, string $normalized): array
+    {
+        return [
+            'version' => $version,
+            'version_normalized' => $normalized,
+            'dist' => ['type' => 'zip', 'url' => '/dist.zip', 'reference' => 'ac7dcaf888af2324cd14200769362129c8dd8550'],
+        ];
     }
 
     private function assertPackageSecurity(string $expected, Package $package): void

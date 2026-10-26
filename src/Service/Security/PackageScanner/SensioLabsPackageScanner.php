@@ -47,12 +47,16 @@ final class SensioLabsPackageScanner implements PackageScanner
         $result = [];
         $status = ScanResult::STATUS_OK;
 
-        if ($packageName === null) {
+        // checked here because every path goes through it: the scan-all command and the
+        // advisories update run it directly, not through ScanPackageHandler
+        if ($packageName === null || !$package->isEnabledSecurityScan()) {
             return;
         }
 
         try {
-            $lockFiles = $this->extractLockFiles($this->findDistribution($package));
+            $distribution = $this->findDistribution($package);
+            // a version installed from source (no dist archive) has nothing to scan
+            $lockFiles = $distribution === null ? [] : $this->extractLockFiles($distribution);
             if ($lockFiles === []) {
                 $status = ScanResult::STATUS_NOT_AVAILABLE;
             }
@@ -104,43 +108,84 @@ final class SensioLabsPackageScanner implements PackageScanner
         }
     }
 
-    private function findDistribution(Package $package): string
+    private function findDistribution(Package $package): ?string
     {
-        $packageName = $package->name();
-        $latestReleasedVersion = $package->latestReleasedVersion();
-
-        $normalizedVersion = $latestReleasedVersion === 'no stable release' ?
-            '9999999-dev' : $this->versionParser->normalize((string) $latestReleasedVersion);
+        $packageName = (string) $package->name();
+        $latestReleasedVersion = (string) $package->latestReleasedVersion();
 
         [, $providerData] = $this->packageManager->findProviders(
             $package->organizationAlias(),
-            [new PackageName($package->id()->toString(), (string) $package->name())]
+            [new PackageName($package->id()->toString(), $packageName)]
         );
+        $versions = $providerData[$packageName] ?? [];
 
-        foreach ($providerData[(string) $packageName] ?? [] as $packageData) {
-            $packageVersion = $packageData['version_normalized']
-                ??
-                $this->versionParser->normalize($packageData['version']);
-            $packageDist = $packageData['dist'];
-            $reference = $packageDist['reference'] ?? $packageDist['shasum'];
+        $packageData = $latestReleasedVersion === 'no stable release'
+            ? $this->defaultBranch($versions)
+            : $this->versionData($versions, $this->versionParser->normalize($latestReleasedVersion));
+        if ($packageData === null) {
+            throw new \RuntimeException(sprintf('Version %s for package %s not found', $latestReleasedVersion, $packageName));
+        }
 
-            if ($packageVersion === $normalizedVersion && isset($packageDist['url'], $reference)) {
-                $archiveType = $packageDist['type'];
-                $filename = $this->packageManager->distFilename(
-                    $package->organizationAlias(),
-                    (string) $packageName,
-                    $normalizedVersion,
-                    $reference,
-                    $archiveType
-                );
+        $packageDist = $packageData['dist'] ?? [];
+        $reference = $packageDist['reference'] ?? $packageDist['shasum'] ?? null;
+        if (!isset($packageDist['url'], $packageDist['type']) || $reference === null) {
+            return null;
+        }
 
-                return $filename->getOrElseThrow(
-                    new \RuntimeException("Distribution file for version $packageVersion not found")
-                );
+        $packageVersion = $this->normalizedVersion($packageData);
+
+        return $this->packageManager
+            ->distFilename($package->organizationAlias(), $packageName, $packageVersion, $reference, $packageDist['type'])
+            ->getOrElseThrow(new \RuntimeException("Distribution file for version $packageVersion not found"));
+    }
+
+    /**
+     * The version to scan when there is no stable release. Composer 2 marks the default branch; data
+     * synced with Composer 1 named it 9999999-dev (Composer 2 normalizes dev-master to dev-master).
+     *
+     * @param array<string, array<string, mixed>> $versions
+     *
+     * @return array<string, mixed>|null
+     */
+    private function defaultBranch(array $versions): ?array
+    {
+        foreach ($versions as $packageData) {
+            if (($packageData['default-branch'] ?? false) === true) {
+                return $packageData;
             }
         }
 
-        throw new \RuntimeException("Version $normalizedVersion for package $packageName not found");
+        foreach ($versions as $packageData) {
+            if (\in_array($this->normalizedVersion($packageData), ['dev-master', '9999999-dev'], true)) {
+                return $packageData;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $versions
+     *
+     * @return array<string, mixed>|null
+     */
+    private function versionData(array $versions, string $normalizedVersion): ?array
+    {
+        foreach ($versions as $packageData) {
+            if ($this->normalizedVersion($packageData) === $normalizedVersion) {
+                return $packageData;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $packageData
+     */
+    private function normalizedVersion(array $packageData): string
+    {
+        return (string) ($packageData['version_normalized'] ?? $this->versionParser->normalize((string) $packageData['version']));
     }
 
     /**
