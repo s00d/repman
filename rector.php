@@ -15,7 +15,7 @@ return RectorConfig::configure()
         __DIR__.'/tests/Resources',
     ])
     ->withImportNames(importShortClasses: false, removeUnusedImports: true)
-    ->withAttributesSets(symfony: true, doctrine: true, phpunit: true, sensiolabs: true, symfonyRoute: true, symfonyValidator: true)
+    ->withAttributesSets(symfony: true, doctrine: true, phpunit: true, sensiolabs: true)
     ->withConfiguredRule(AnnotationToAttributeRector::class, [
         new AnnotationToAttribute('OpenApi\Annotations\Tag', 'OpenApi\Attributes\Tag'),
         new AnnotationToAttribute('OpenApi\Annotations\Response', 'OpenApi\Attributes\Response'),
