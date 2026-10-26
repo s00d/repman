@@ -48,7 +48,7 @@ final class AnonymousOrganizationUserAuthenticator extends AbstractAuthenticator
         }));
     }
 
-    public function supports(Request $request): ?bool
+    public function supports(Request $request): bool
     {
         return $request->get('_route') !== 'repo_package_downloads'
             && !$request->headers->has('PHP_AUTH_USER')

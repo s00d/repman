@@ -8,7 +8,7 @@ use Buddy\Repman\Command\ClearOldPrivateDistsCommand;
 use Buddy\Repman\Entity\Organization\Package\Version;
 use Buddy\Repman\Tests\Functional\FunctionalTestCase;
 use Composer\Semver\VersionParser;
-use League\Flysystem\FilesystemInterface;
+use League\Flysystem\FilesystemOperator;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -18,7 +18,7 @@ final class ClearOldPrivateDistsCommandTest extends FunctionalTestCase
     private string $packageName = 'buddy-works/repman';
     private string $version = '1.2.3';
 
-    private FilesystemInterface $filesystem;
+    private FilesystemOperator $filesystem;
 
     protected function setUp(): void
     {

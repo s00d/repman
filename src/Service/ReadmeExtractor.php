@@ -6,42 +6,47 @@ namespace Buddy\Repman\Service;
 
 use Buddy\Repman\Entity\Organization\Package;
 use Buddy\Repman\Service\Dist\Storage;
-use League\CommonMark\CommonMarkConverter;
-use League\CommonMark\Environment;
+use League\CommonMark\Environment\Environment;
+use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\ExternalLink\ExternalLinkExtension;
+use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
 use League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension;
-use League\CommonMark\MarkdownConverterInterface;
+use League\CommonMark\MarkdownConverter;
 
 final class ReadmeExtractor
 {
     private Storage $distStorage;
-    private MarkdownConverterInterface $markdownConverter;
+    private MarkdownConverter $markdownConverter;
 
     public function __construct(Storage $distStorage)
     {
         $this->distStorage = $distStorage;
 
-        $environment = Environment::createGFMEnvironment();
+        // README comes from the package author and is rendered unescaped on the package page,
+        // so raw HTML must never reach the output.
+        $environment = new Environment([
+            'html_input' => 'escape',
+            'allow_unsafe_links' => false,
+            'external_link' => [
+                'open_in_new_window' => true,
+                'nofollow' => '',
+                'noopener' => 'external',
+                'noreferrer' => 'external',
+            ],
+            'heading_permalink' => [
+                'id_prefix' => 'user-content',
+                'fragment_prefix' => '',
+                'symbol' => '',
+                'html_class' => '',
+                'title' => '',
+            ],
+        ]);
+        $environment->addExtension(new CommonMarkCoreExtension());
+        $environment->addExtension(new GithubFlavoredMarkdownExtension());
         $environment->addExtension(new ExternalLinkExtension());
         $environment->addExtension(new HeadingPermalinkExtension());
 
-        $this->markdownConverter = new CommonMarkConverter(
-            [
-                'allow_unsafe_links' => false,
-                'external_link' => [
-                    'open_in_new_window' => true,
-                    'nofollow' => '',
-                    'noopener' => 'external',
-                    'noreferrer' => 'external',
-                ],
-                'heading_permalink' => [
-                    'symbol' => '',
-                    'html_class' => '',
-                    'title' => '',
-                ],
-            ],
-            $environment
-        );
+        $this->markdownConverter = new MarkdownConverter($environment);
     }
 
     public function extractReadme(Package $package, Dist $dist): void
@@ -59,6 +64,8 @@ final class ReadmeExtractor
         $zip = new \ZipArchive();
         $result = $zip->open($tmpLocalFilename->get());
         if ($result !== true) {
+            @unlink($tmpLocalFilename->get());
+
             return null;
         }
 
@@ -66,7 +73,7 @@ final class ReadmeExtractor
             for ($i = 0; $i < $zip->numFiles; ++$i) {
                 $filename = (string) $zip->getNameIndex($i);
                 if (preg_match('/^([^\/]+\/)?README.md$/i', $filename) === 1) {
-                    return $this->markdownConverter->convertToHtml((string) $zip->getFromIndex($i));
+                    return $this->markdownConverter->convert((string) $zip->getFromIndex($i))->getContent();
                 }
             }
         } finally {

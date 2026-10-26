@@ -40,7 +40,7 @@ final class TokenAuthenticator extends AbstractAuthenticator implements Authenti
         return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
     }
 
-    public function supports(Request $request): ?bool
+    public function supports(Request $request): bool
     {
         return $request->headers->has('PHP_AUTH_USER') && $request->headers->has('PHP_AUTH_PW');
     }

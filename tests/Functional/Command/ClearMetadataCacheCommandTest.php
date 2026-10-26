@@ -6,7 +6,7 @@ namespace Buddy\Repman\Tests\Functional\Command;
 
 use Buddy\Repman\Command\ClearMetadataCacheCommand;
 use Buddy\Repman\Tests\Functional\FunctionalTestCase;
-use League\Flysystem\Adapter\Local;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\Filesystem;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
@@ -31,7 +31,7 @@ final class ClearMetadataCacheCommandTest extends FunctionalTestCase
         self::assertFileExists($packagesFile);
         self::assertFileExists($distFile);
 
-        $command = new ClearMetadataCacheCommand(new Filesystem(new Local($basePath)));
+        $command = new ClearMetadataCacheCommand(new Filesystem(new LocalFilesystemAdapter($basePath)));
         $commandTester = new CommandTester($command);
         $commandTester->execute([]);
 
@@ -52,7 +52,7 @@ final class ClearMetadataCacheCommandTest extends FunctionalTestCase
     {
         $basePath = \sys_get_temp_dir().'/'.'repman/clear-metadata';
 
-        $command = new ClearMetadataCacheCommand(new Filesystem(new Local($basePath)));
+        $command = new ClearMetadataCacheCommand(new Filesystem(new LocalFilesystemAdapter($basePath)));
         $commandTester = new CommandTester($command);
         $commandTester->execute([]);
 

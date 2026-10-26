@@ -51,7 +51,7 @@ final class ReactDownloaderTest extends TestCase
         $downloader = new ReactDownloader();
         $downloader->getAsyncContents('https://repman.io', [], function ($stream): void {
             $meta = stream_get_meta_data($stream);
-            self::assertTrue($meta['uri'] === 'https://repman.io');
+            self::assertSame('https://repman.io', $meta['uri'] ?? null);
         });
         $downloader->getAsyncContents('/tmp/not-exists', [], function ($stream): void {
             throw new \LogicException('Should not happen');

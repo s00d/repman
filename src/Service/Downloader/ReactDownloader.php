@@ -19,6 +19,7 @@ final class ReactDownloader implements Downloader
 {
     private LoopInterface $loop;
     private Browser $browser;
+    /** @var Queue<mixed> */
     private Queue $queue;
 
     public function __construct()
@@ -115,7 +116,9 @@ final class ReactDownloader implements Downloader
      */
     private function getStatusCode(array $headers): int
     {
-        preg_match('{HTTP\/\S*\s(\d{3})}', $headers[0], $match);
+        if (!isset($headers[0]) || preg_match('{HTTP\/\S*\s(\d{3})}', (string) $headers[0], $match) !== 1) {
+            return 0;
+        }
 
         return (int) $match[1];
     }

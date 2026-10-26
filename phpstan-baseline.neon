@@ -21,11 +21,6 @@ parameters:
 			path: src/Entity/Organization/Package.php
 
 		-
-			message: "#^Parameter \\#6 \\$userAgent of class Buddy\\\\Repman\\\\Entity\\\\Organization\\\\Package\\\\Download constructor expects string\\|null, string\\|false\\|null given\\.$#"
-			count: 1
-			path: src/MessageHandler/Organization/AddDownloadHandler.php
-
-		-
 			message: "#^Variable \\$http_response_header in isset\\(\\) always exists and is not nullable\\.$#"
 			count: 1
 			path: src/Service/Downloader/ReactDownloader.php
@@ -34,21 +29,6 @@ parameters:
 			message: "#^Variable method call on React\\\\Http\\\\Browser\\.$#"
 			count: 1
 			path: src/Service/Downloader/ReactDownloader.php
-
-		-
-			message: "#^Expression on left side of \\?\\? is not nullable\\.$#"
-			count: 4
-			path: src/Service/PackageSynchronizer/ComposerPackageSynchronizer.php
-
-		-
-			message: "#^Strict comparison using \\!\\=\\= between string and null will always evaluate to true\\.$#"
-			count: 1
-			path: src/Service/PackageSynchronizer/ComposerPackageSynchronizer.php
-
-		-
-			message: "#^Variable method call on Composer\\\\Package\\\\PackageInterface\\.$#"
-			count: 1
-			path: src/Service/PackageSynchronizer/ComposerPackageSynchronizer.php
 
 		-
 			message: "#^Method Sentry\\\\State\\\\Scope\\:\\:setUser\\(\\) invoked with 2 parameters, 1 required\\.$#"
@@ -94,16 +74,6 @@ parameters:
 			message: "#^Service \"Buddy\\\\Repman\\\\Tests\\\\Doubles\\\\HttpClientStub\" is private\\.$#"
 			count: 2
 			path: tests/Doubles/GitLabOAuth.php
-
-		-
-			message: "#^PHPDoc tag @var has invalid value \\(ResponseInterface\\[\\];\\)\\: Unexpected token \";\", expected TOKEN_HORIZONTAL_WS at offset 35$#"
-			count: 1
-			path: tests/Doubles/HttpClientStub.php
-
-		-
-			message: "#^Property Buddy\\\\Repman\\\\Tests\\\\Doubles\\\\HttpClientStub\\:\\:\\$nextResponses type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: tests/Doubles/HttpClientStub.php
 
 		-
 			message: "#^Service \"Buddy\\\\Repman\\\\Command\\\\ClearOldPrivateDistsCommand\" is private\\.$#"
@@ -299,26 +269,6 @@ parameters:
 			message: "#^Service \"Buddy\\\\Repman\\\\Query\\\\User\\\\OrganizationQuery\\\\DbalOrganizationQuery\" is private\\.$#"
 			count: 1
 			path: tests/Functional/Controller/UserControllerTest.php
-
-		-
-			message: "#^Call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertInstanceOf\\(\\) with 'Symfony\\\\\\\\Component\\\\\\\\HttpFoundation\\\\\\\\Session\\\\\\\\Session' and Symfony\\\\Component\\\\HttpFoundation\\\\Session\\\\Session will always evaluate to true\\.$#"
-			count: 1
-			path: tests/Integration/Security/BitbucketAuthenticatorTest.php
-
-		-
-			message: "#^Call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertInstanceOf\\(\\) with 'Symfony\\\\\\\\Component\\\\\\\\HttpFoundation\\\\\\\\Session\\\\\\\\Session' and Symfony\\\\Component\\\\HttpFoundation\\\\Session\\\\Session will always evaluate to true\\.$#"
-			count: 1
-			path: tests/Integration/Security/BuddyAuthenticatorTest.php
-
-		-
-			message: "#^Call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertInstanceOf\\(\\) with 'Symfony\\\\\\\\Component\\\\\\\\HttpFoundation\\\\\\\\Session\\\\\\\\Session' and Symfony\\\\Component\\\\HttpFoundation\\\\Session\\\\Session will always evaluate to true\\.$#"
-			count: 1
-			path: tests/Integration/Security/GitHubAuthenticatorTest.php
-
-		-
-			message: "#^Call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertInstanceOf\\(\\) with 'Symfony\\\\\\\\Component\\\\\\\\HttpFoundation\\\\\\\\Session\\\\\\\\Session' and Symfony\\\\Component\\\\HttpFoundation\\\\Session\\\\Session will always evaluate to true\\.$#"
-			count: 1
-			path: tests/Integration/Security/GitLabAuthenticatorTest.php
 
 		-
 			message: """

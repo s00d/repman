@@ -8,7 +8,7 @@ use Buddy\Repman\Service\Proxy;
 use Buddy\Repman\Service\Proxy\Metadata;
 use Buddy\Repman\Tests\Doubles\FakeDownloader;
 use League\Flysystem\Filesystem;
-use League\Flysystem\Memory\MemoryAdapter;
+use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use PHPUnit\Framework\TestCase;
 
 final class ProxyTest extends TestCase
@@ -22,7 +22,7 @@ final class ProxyTest extends TestCase
         $this->proxy = new Proxy(
             'packagist.org',
             'https://packagist.org',
-            $this->filesystem = new Filesystem(new MemoryAdapter()),
+            $this->filesystem = new Filesystem(new InMemoryFilesystemAdapter()),
             $this->downloader = new FakeDownloader()
         );
     }

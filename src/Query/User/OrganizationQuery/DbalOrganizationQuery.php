@@ -11,6 +11,7 @@ use Buddy\Repman\Query\User\Model\Organization\Invitation;
 use Buddy\Repman\Query\User\Model\Organization\Member;
 use Buddy\Repman\Query\User\Model\Organization\Token;
 use Buddy\Repman\Query\User\OrganizationQuery;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Munus\Control\Option;
 
@@ -114,14 +115,14 @@ final class DbalOrganizationQuery implements OrganizationQuery
                         'date' => (new \DateTimeImmutable())->modify(sprintf('-%s days', $lastDays))->format('Y-m-d'),
                         'packages' => $packagesId,
                     ],
-                    ['packages' => Connection::PARAM_STR_ARRAY],
+                    ['packages' => ArrayParameterType::STRING],
                 )
             ),
             $lastDays,
             (int) $this->connection->fetchOne(
                 'SELECT COUNT(package_id) FROM organization_package_download WHERE package_id IN (:packages)',
                 ['packages' => $packagesId],
-                ['packages' => Connection::PARAM_STR_ARRAY]
+                ['packages' => ArrayParameterType::STRING]
             )
         );
     }

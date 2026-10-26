@@ -14,7 +14,7 @@ use Buddy\Repman\Service\PackageSynchronizer\ComposerPackageSynchronizer;
 use Buddy\Repman\Service\User\UserOAuthTokenRefresher;
 use Buddy\Repman\Tests\Doubles\FakeDownloader;
 use Buddy\Repman\Tests\MotherObject\PackageMother;
-use League\Flysystem\Adapter\Local;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\Filesystem;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -31,7 +31,7 @@ final class ComposerPackageSynchronizerTest extends TestCase
     protected function setUp(): void
     {
         $this->baseDir = sys_get_temp_dir().'/repman';
-        $repoFilesystem = new Filesystem(new Local($this->baseDir));
+        $repoFilesystem = new Filesystem(new LocalFilesystemAdapter($this->baseDir));
         $this->downloader = new FakeDownloader();
         $distStorage = new Storage($this->downloader, $repoFilesystem);
         $this->synchronizer = new ComposerPackageSynchronizer(
@@ -50,17 +50,23 @@ final class ComposerPackageSynchronizerTest extends TestCase
         $path = $this->baseDir.'/buddy/p/repman-io/repman.json';
         @unlink($path);
 
-        $basePath = dirname(__DIR__, 4);
+        // a plain directory (no VCS), so the result does not depend on the git state of this checkout
+        $basePath = sys_get_temp_dir().'/repman-path-'.uniqid('', true);
+        mkdir($basePath);
+        file_put_contents($basePath.'/composer.json', (string) json_encode(['name' => 'repman-io/repman', 'version' => '1.2.3']));
         $this->downloader->addContent($basePath, 'foobar');
 
         $package = PackageMother::withOrganization('path', $basePath, 'buddy');
         $this->synchronizer->synchronize($package);
 
+        self::assertTrue($package->isSynchronizedSuccessfully(), (string) $this->getProperty($package, 'lastSyncError'));
         self::assertFileExists($path);
 
         $json = unserialize((string) file_get_contents($path));
-        self::assertTrue($json['packages']['repman-io/repman'] !== []);
+        self::assertSame(['1.2.3'], array_keys($json['packages']['repman-io/repman']));
         @unlink($path);
+        unlink($basePath.'/composer.json');
+        rmdir($basePath);
 
         self::assertCount(1, $package->versions());
     }

@@ -356,6 +356,7 @@ final class PackageController extends ApiController
 
     /**
      * @param array<string,string> $json
+     * @param FormInterface<mixed> $form
      */
     private function handleAddPackage(?string $type, FormInterface $form, Organization $organization, array $json): ?string
     {
@@ -390,6 +391,7 @@ final class PackageController extends ApiController
 
     /**
      * @param array<string,string> $json
+     * @param FormInterface<mixed> $form
      */
     private function packageNewFromUrl(FormInterface $form, Organization $organization, array $json): ?string
     {
@@ -414,6 +416,7 @@ final class PackageController extends ApiController
 
     /**
      * @param array<string,string> $json
+     * @param FormInterface<mixed> $form
      */
     private function packageNewFromGitHub(FormInterface $form, Organization $organization, array $json): ?string
     {
@@ -442,6 +445,7 @@ final class PackageController extends ApiController
 
     /**
      * @param array<string,string> $json
+     * @param FormInterface<mixed> $form
      */
     private function packageNewFromGitLab(FormInterface $form, Organization $organization, array $json): ?string
     {
@@ -475,6 +479,7 @@ final class PackageController extends ApiController
 
     /**
      * @param array<string,string> $json
+     * @param FormInterface<mixed> $form
      */
     private function packageNewFromBitbucket(FormInterface $form, Organization $organization, array $json): ?string
     {

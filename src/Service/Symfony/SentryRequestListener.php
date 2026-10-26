@@ -37,9 +37,8 @@ final class SentryRequestListener implements EventSubscriberInterface
         $token = $this->tokenStorage->getToken();
         $userData = [];
 
-        if (null !== $token && $token->getUser() instanceof User) {
-            /** @var User $user */
-            $user = $token->getUser();
+        $user = $token !== null ? $token->getUser() : null;
+        if ($user instanceof User) {
             $userData['id'] = $user->id();
         }
 
@@ -52,7 +51,7 @@ final class SentryRequestListener implements EventSubscriberInterface
     }
 
     /**
-     * @return array<string,array<int,string|int>>
+     * @return array<string, array{0: string, 1?: int}>
      */
     public static function getSubscribedEvents()
     {

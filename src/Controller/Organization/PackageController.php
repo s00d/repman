@@ -164,6 +164,7 @@ final class PackageController extends AbstractController
 
     /**
      * @param array<string,int|string> $choices
+     * @param FormInterface<mixed> $form
      */
     private function addRepositoriesChoiceType(FormInterface $form, array $choices): void
     {
@@ -188,6 +189,9 @@ final class PackageController extends AbstractController
         return $this->redirectToRoute('organization_packages', ['organization' => $organization->alias()]);
     }
 
+    /**
+     * @param FormInterface<mixed> $form
+     */
     private function packageNewFromUrl(string $label, FormInterface $form, Organization $organization, Request $request): ?Response
     {
         $form->add(
@@ -219,6 +223,9 @@ final class PackageController extends AbstractController
         return null;
     }
 
+    /**
+     * @param FormInterface<mixed> $form
+     */
     private function packageNewFromGitHub(FormInterface $form, Organization $organization, Request $request): ?Response
     {
         $token = $this->oauthProvider->findAccessToken($this->getUser()->id(), OAuthToken::TYPE_GITHUB);
@@ -250,6 +257,9 @@ final class PackageController extends AbstractController
         return null;
     }
 
+    /**
+     * @param FormInterface<mixed> $form
+     */
     private function packageNewFromGitLab(FormInterface $form, Organization $organization, Request $request): ?Response
     {
         $token = $this->oauthProvider->findAccessToken($this->getUser()->id(), OAuthToken::TYPE_GITLAB);
@@ -281,6 +291,9 @@ final class PackageController extends AbstractController
         return null;
     }
 
+    /**
+     * @param FormInterface<mixed> $form
+     */
     private function packageNewFromBitbucket(FormInterface $form, Organization $organization, Request $request): ?Response
     {
         $token = $this->oauthProvider->findAccessToken($this->getUser()->id(), OAuthToken::TYPE_BITBUCKET);

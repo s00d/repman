@@ -13,6 +13,9 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\PositiveOrZero;
 
+/**
+ * @extends AbstractType<mixed>
+ */
 class AddPackageType extends AbstractType
 {
     /**
