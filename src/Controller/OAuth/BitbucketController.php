@@ -52,6 +52,7 @@ final class BitbucketController extends OAuthController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/package/add-from-bitbucket", name="fetch_bitbucket_package_token", methods={"GET"}, requirements={"organization"="%organization_pattern%"})
      */
     public function packageAddFromBitbucket(Request $request, Organization $organization, UserQuery $userQuery): Response

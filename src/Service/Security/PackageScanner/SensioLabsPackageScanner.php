@@ -31,7 +31,7 @@ final class SensioLabsPackageScanner implements PackageScanner
         PackageManager $packageManager,
         ScanResultRepository $results,
         MessageBusInterface $messageBus,
-        Storage $distStorage
+        Storage $distStorage,
     ) {
         $this->checker = $checker;
         $this->packageManager = $packageManager;

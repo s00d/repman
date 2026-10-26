@@ -14,6 +14,7 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * @ORM\Entity
+ *
  * @ORM\Table(
  *     name="user_oauth_token",
  *     uniqueConstraints={@UniqueConstraint(name="token_type", columns={"type", "user_id"})}
@@ -55,12 +56,14 @@ class OAuthToken
 
     /**
      * @ORM\Id
+     *
      * @ORM\Column(type="uuid", unique=true)
      */
     private UuidInterface $id;
 
     /**
      * @ORM\ManyToOne(targetEntity="Buddy\Repman\Entity\User", inversedBy="oauthTokens")
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private User $user;
@@ -113,7 +116,7 @@ class OAuthToken
         string $type,
         string $accessToken,
         ?string $refreshToken = null,
-        ?\DateTimeImmutable $expiresAt = null
+        ?\DateTimeImmutable $expiresAt = null,
     ) {
         $this->id = $id;
         $this->user = $user->addOAuthToken($this);

@@ -26,7 +26,7 @@ class SecurityController extends AbstractController
     public function __construct(
         AuthenticationUtils $authenticationUtils,
         Config $config,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->authenticationUtils = $authenticationUtils;
         $this->config = $config;

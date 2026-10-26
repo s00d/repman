@@ -16,7 +16,7 @@ final class Version20200720112146 extends AbstractMigration implements Container
 {
     private ContainerInterface $container;
 
-    public function setContainer(ContainerInterface $container = null): void
+    public function setContainer(?ContainerInterface $container = null): void
     {
         if ($container === null) {
             throw new \InvalidArgumentException('Container is required');

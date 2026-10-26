@@ -34,7 +34,7 @@ final class MembersController extends AbstractController
     public function __construct(
         OrganizationQuery $organizations,
         TokenStorageInterface $tokenStorage,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->organizations = $organizations;
         $this->tokenStorage = $tokenStorage;
@@ -89,6 +89,7 @@ final class MembersController extends AbstractController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/member/invite", name="organization_invite_member", methods={"GET", "POST"}, requirements={"organization"="%organization_pattern%"})
      */
     public function invite(Organization $organization, Request $request): Response
@@ -117,6 +118,7 @@ final class MembersController extends AbstractController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/invitation", name="organization_invitations", methods={"GET"}, requirements={"organization"="%organization_pattern%"})
      */
     public function listInvitations(Organization $organization, Request $request): Response
@@ -133,6 +135,7 @@ final class MembersController extends AbstractController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/invitation/{token}", name="organization_remove_invitation", methods={"DELETE"}, requirements={"organization"="%organization_pattern%"})
      */
     public function removeInvitation(Organization $organization, string $token): Response
@@ -145,6 +148,7 @@ final class MembersController extends AbstractController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/member/{member}", name="organization_remove_member", methods={"DELETE"}, requirements={"organization"="%organization_pattern%", "member"="%uuid_pattern%"})
      */
     public function removeMember(Organization $organization, Member $member): Response
@@ -161,6 +165,7 @@ final class MembersController extends AbstractController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/member/{member}/role", name="organization_change_member_role", methods={"GET", "POST"}, requirements={"organization"="%organization_pattern%", "member"="%uuid_pattern%"})
      */
     public function changeRole(Organization $organization, Member $member, Request $request): Response

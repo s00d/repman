@@ -43,25 +43,25 @@ final class RestBitbucketApiTest extends TestCase
     {
         $currentUser = $this->createMock(CurrentUser::class);
         $currentUser->method('listEmails')->willReturn([
-          'pagelen' => 10,
-          'values' => [
-            [
-                'is_primary' => false,
-                'is_confirmed' => false,
-                'type' => 'email',
-                'email' => 'admin.of@the.world',
-                'links' => [],
+            'pagelen' => 10,
+            'values' => [
+                [
+                    'is_primary' => false,
+                    'is_confirmed' => false,
+                    'type' => 'email',
+                    'email' => 'admin.of@the.world',
+                    'links' => [],
+                ],
+                [
+                    'is_primary' => true,
+                    'is_confirmed' => true,
+                    'type' => 'email',
+                    'email' => 'test@buddy.works',
+                    'links' => [],
+                ],
             ],
-            [
-                'is_primary' => true,
-                'is_confirmed' => true,
-                'type' => 'email',
-                'email' => 'test@buddy.works',
-                'links' => [],
-            ],
-          ],
-          'page' => 1,
-          'size' => 2,
+            'page' => 1,
+            'size' => 2,
         ]);
         $this->clientMock->method('currentUser')->willReturn($currentUser);
 

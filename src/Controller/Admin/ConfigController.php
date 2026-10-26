@@ -23,7 +23,7 @@ final class ConfigController extends AbstractController
     public function __construct(
         Config $config,
         Telemetry $telemetry,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->config = $config;
         $this->telemetry = $telemetry;

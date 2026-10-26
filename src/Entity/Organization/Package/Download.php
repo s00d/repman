@@ -10,9 +10,11 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * @ORM\Entity
+ *
  * @ORM\Table(
  *     name="organization_package_download",
  *     indexes={
+ *
  *      @Index(name="package_id_idx", columns={"package_id"}),
  *      @Index(name="download_date_idx", columns={"date"}),
  *      @Index(name="download_version_idx", columns={"version"})
@@ -23,6 +25,7 @@ class Download
 {
     /**
      * @ORM\Id()
+     *
      * @ORM\Column(type="uuid")
      */
     private UuidInterface $id;
@@ -58,7 +61,7 @@ class Download
         \DateTimeImmutable $date,
         string $version,
         ?string $ip = null,
-        ?string $userAgent = null
+        ?string $userAgent = null,
     ) {
         $this->id = $id;
         $this->packageId = $packageId;

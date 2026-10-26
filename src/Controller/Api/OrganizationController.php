@@ -27,7 +27,7 @@ final class OrganizationController extends ApiController
 
     public function __construct(
         OrganizationQuery $organizationQuery,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->organizationQuery = $organizationQuery;
         $this->messageBus = $messageBus;
@@ -49,6 +49,7 @@ final class OrganizationController extends ApiController
      * @OA\Response(
      *     response=200,
      *     description="Returns list of user's organizations",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Organizations::class)
      *     )
@@ -77,12 +78,14 @@ final class OrganizationController extends ApiController
      *     methods={"POST"})
      *
      * @OA\RequestBody(
+     *
      *     @Model(type=CreateOrganizationType::class)
      * )
      *
      * @OA\Response(
      *     response=201,
      *     description="Create a new organization",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Organization::class)
      *     )
@@ -91,6 +94,7 @@ final class OrganizationController extends ApiController
      * @OA\Response(
      *     response=400,
      *     description="Bad request",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Errors::class)
      *     )

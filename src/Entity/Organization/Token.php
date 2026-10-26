@@ -9,12 +9,14 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity
+ *
  * @ORM\Table(name="organization_token")
  */
 class Token
 {
     /**
      * @ORM\Id
+     *
      * @ORM\Column(type="string", length=64, unique=true)
      */
     private string $value;
@@ -26,6 +28,7 @@ class Token
 
     /**
      * @ORM\ManyToOne(targetEntity="Buddy\Repman\Entity\Organization", inversedBy="tokens")
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private Organization $organization;

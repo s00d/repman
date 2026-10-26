@@ -55,6 +55,7 @@ final class GitHubController extends OAuthController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/package/add-from-github", name="fetch_github_package_token", methods={"GET"}, requirements={"organization"="%organization_pattern%"})
      */
     public function packageAddFromGithub(Request $request, Organization $organization, UserQuery $userQuery): Response

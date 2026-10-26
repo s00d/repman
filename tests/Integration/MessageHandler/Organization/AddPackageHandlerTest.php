@@ -21,7 +21,7 @@ final class AddPackageHandlerTest extends IntegrationTestCase
             $id = Uuid::uuid4()->toString(),
             $organizationId,
             $url
-            )
+        )
         );
 
         $package = $this
@@ -43,7 +43,7 @@ final class AddPackageHandlerTest extends IntegrationTestCase
             Uuid::uuid4()->toString(),
             'c5e33fc9-27b0-42e1-b8cc-49a7f79b49b2',
             'test.com'
-            )
+        )
         );
     }
 }

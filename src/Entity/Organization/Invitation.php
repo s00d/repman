@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity
+ *
  * @ORM\Table(
  *     name="organization_invitation",
  *     uniqueConstraints={@ORM\UniqueConstraint(name="email_organization", columns={"email", "organization_id"})}
@@ -18,6 +19,7 @@ class Invitation
 {
     /**
      * @ORM\Id
+     *
      * @ORM\Column(type="string", unique=true)
      */
     private string $token;
@@ -29,6 +31,7 @@ class Invitation
 
     /**
      * @ORM\ManyToOne(targetEntity="Buddy\Repman\Entity\Organization", inversedBy="invitations")
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private Organization $organization;

@@ -132,7 +132,7 @@ class PackageManager
      * @return Option<resource> Handle for a file
      */
     public function getDistFileReference(
-        string $fileName
+        string $fileName,
     ): Option {
         try {
             return Option::some($this->repoFilesystem->readStream($fileName));

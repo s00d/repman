@@ -43,7 +43,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
         PackageRepository $packageRepository,
         Storage $distStorage,
         UserOAuthTokenRefresher $tokenRefresher,
-        string $gitlabUrl
+        string $gitlabUrl,
     ) {
         $this->packageManager = $packageManager;
         $this->packageNormalizer = $packageNormalizer;

@@ -15,6 +15,7 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * @ORM\Entity(repositoryClass="Buddy\Repman\Repository\UserRepository")
+ *
  * @ORM\Table(name="`user`")
  */
 class User
@@ -25,6 +26,7 @@ class User
 
     /**
      * @ORM\Id
+     *
      * @ORM\Column(type="uuid", unique=true)
      */
     private UuidInterface $id;
@@ -41,12 +43,14 @@ class User
 
     /**
      * @var array<string>
+     *
      * @ORM\Column(type="json")
      */
     private array $roles = [];
 
     /**
      * @var string The hashed password
+     *
      * @ORM\Column(type="string")
      */
     private string $password;
@@ -73,6 +77,7 @@ class User
 
     /**
      * @var Collection<int,Member>|Member[]
+     *
      * @ORM\OneToMany(targetEntity="Buddy\Repman\Entity\Organization\Member", mappedBy="user", orphanRemoval=true)
      */
     private Collection $memberships;
@@ -84,6 +89,7 @@ class User
 
     /**
      * @var Collection<int,OAuthToken>|OAuthToken[]
+     *
      * @ORM\OneToMany(targetEntity="Buddy\Repman\Entity\User\OAuthToken", mappedBy="user", orphanRemoval=true, cascade={"persist"})
      */
     private Collection $oauthTokens;
@@ -95,6 +101,7 @@ class User
 
     /**
      * @var Collection<int,ApiToken>|ApiToken[]
+     *
      * @ORM\OneToMany(targetEntity="Buddy\Repman\Entity\User\ApiToken", mappedBy="user", cascade={"persist"}, orphanRemoval=true)
      */
     private Collection $apiTokens;

@@ -30,7 +30,7 @@ final class RepoController extends AbstractController
     public function __construct(
         PackageQuery $packageQuery,
         PackageManager $packageManager,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->packageQuery = $packageQuery;
         $this->packageManager = $packageManager;
@@ -39,6 +39,7 @@ final class RepoController extends AbstractController
 
     /**
      * @Route("/packages.json", host="{organization}{sep1}repo{sep2}{domain}", name="repo_packages", methods={"GET"}, defaults={"domain":"%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"}, requirements={"domain"="%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"})
+     *
      * @Cache(public=false)
      */
     public function packages(Request $request, Organization $organization): JsonResponse
@@ -80,6 +81,7 @@ final class RepoController extends AbstractController
      *     defaults={"domain":"%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"},
      *     requirements={"package"="%package_name_pattern%","ref"="[a-f0-9]*?","type"="zip|tar","domain"="%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"},
      *     methods={"GET"})
+     *
      * @Cache(public=false)
      */
     public function distribution(Organization $organization, string $package, string $version, string $ref, string $type): StreamedResponse
@@ -147,6 +149,7 @@ final class RepoController extends AbstractController
      *      methods={"GET"},
      *      defaults={"domain":"%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"},
      *      requirements={"domain"="%domain%","package"="%package_name_pattern%","sep1"="%organization_separator%","sep2"="%domain_separator%"})
+     *
      * @Cache(public=false)
      */
     public function providerV2Dev(Request $request, Organization $organization, string $package): JsonResponse
@@ -165,6 +168,7 @@ final class RepoController extends AbstractController
      *      methods={"GET"},
      *      defaults={"domain":"%domain%","sep1"="%organization_separator%","sep2"="%domain_separator%"},
      *      requirements={"domain"="%domain%","package"="%package_name_pattern%","sep1"="%organization_separator%","sep2"="%domain_separator%"})
+     *
      * @Cache(public=false)
      */
     public function providerV2(Request $request, Organization $organization, string $package): JsonResponse

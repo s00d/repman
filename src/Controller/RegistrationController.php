@@ -27,7 +27,7 @@ class RegistrationController extends AbstractController
     public function __construct(
         UserGuardHelper $guard,
         Config $config,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->guard = $guard;
         $this->config = $config;

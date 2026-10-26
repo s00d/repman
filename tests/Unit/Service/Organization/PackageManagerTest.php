@@ -9,10 +9,10 @@ use Buddy\Repman\Service\Dist;
 use Buddy\Repman\Service\Dist\Storage;
 use Buddy\Repman\Service\Organization\PackageManager;
 use Buddy\Repman\Tests\Doubles\FakeDownloader;
-use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 

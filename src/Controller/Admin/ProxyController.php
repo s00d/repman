@@ -25,7 +25,7 @@ final class ProxyController extends AbstractController
     public function __construct(
         ProxyRegister $register,
         DownloadsQuery $downloadsQuery,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->register = $register;
         $this->downloadsQuery = $downloadsQuery;

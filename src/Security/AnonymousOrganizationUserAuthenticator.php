@@ -29,7 +29,7 @@ final class AnonymousOrganizationUserAuthenticator extends AbstractAuthenticator
     /**
      * @codeCoverageIgnore
      */
-    public function start(Request $request, AuthenticationException $authException = null): JsonResponse
+    public function start(Request $request, ?AuthenticationException $authException = null): JsonResponse
     {
         return new JsonResponse([
             'message' => 'Authentication Required',

@@ -101,13 +101,13 @@ final class DbalPackageQuery implements PackageQuery
     {
         return array_map(function (array $data): PackageName {
             return new PackageName($data['id'], $data['name']);
-            }, $this->connection->fetchAllAssociative(
-                'SELECT id, name
+        }, $this->connection->fetchAllAssociative(
+            'SELECT id, name
             FROM "organization_package"
             WHERE organization_id = :organization_id AND name IS NOT NULL',
-                [
+            [
                 'organization_id' => $organizationId,
-        ]));
+            ]));
     }
 
     public function count(string $organizationId, Filter $filter): int
@@ -161,8 +161,8 @@ final class DbalPackageQuery implements PackageQuery
                 enable_security_scan
             FROM "organization_package"
             WHERE id = :id', [
-            'id' => $id,
-        ]);
+                'id' => $id,
+            ]);
         if ($data === false) {
             return Option::none();
         }
@@ -197,8 +197,8 @@ final class DbalPackageQuery implements PackageQuery
                 enable_security_scan
             FROM "organization_package"
             WHERE id = :id', [
-            'id' => $id,
-        ]);
+                'id' => $id,
+            ]);
         if ($data === false) {
             return Option::none();
         }
@@ -227,9 +227,9 @@ final class DbalPackageQuery implements PackageQuery
             JOIN organization_package p ON p.id = l.package_id
             WHERE l.target = :package_name
             AND p.organization_id = :organization_id', [
-            'package_name' => $packageName,
-            'organization_id' => $organizationId,
-        ]);
+                'package_name' => $packageName,
+                'organization_id' => $organizationId,
+            ]);
     }
 
     /**
@@ -247,9 +247,9 @@ final class DbalPackageQuery implements PackageQuery
             FROM organization_package_link l
             LEFT JOIN organization_package p ON (p.name = l.target AND p.organization_id = :organization_id)
             WHERE package_id = :package_id', [
-            'organization_id' => $organizationId,
-            'package_id' => $packageId,
-        ]) as $data) {
+                'organization_id' => $organizationId,
+                'package_id' => $packageId,
+            ]) as $data) {
             $links[(string) $data['type']][] = new Link(
                 $data['type'],
                 $data['target'],
@@ -273,8 +273,8 @@ final class DbalPackageQuery implements PackageQuery
                 $data['size'],
                 new \DateTimeImmutable($data['date'])
             );
-            }, $this->connection->fetchAllAssociative(
-                'SELECT
+        }, $this->connection->fetchAllAssociative(
+            'SELECT
                 id,
                 version,
                 reference,
@@ -287,7 +287,7 @@ final class DbalPackageQuery implements PackageQuery
                 'package_id' => $packageId,
                 'limit' => $filter->getLimit(),
                 'offset' => $filter->getOffset(),
-        ]));
+            ]));
     }
 
     public function getInstalls(string $packageId, int $lastDays = 30, ?string $version = null): Installs
@@ -345,8 +345,8 @@ final class DbalPackageQuery implements PackageQuery
                 $data['version'],
                 $data['content'],
             );
-            }, $this->connection->fetchAllAssociative(
-                'SELECT
+        }, $this->connection->fetchAllAssociative(
+            'SELECT
                 date,
                 status,
                 version,
@@ -355,10 +355,10 @@ final class DbalPackageQuery implements PackageQuery
             WHERE package_id = :package_id
             ORDER BY date DESC
             LIMIT :limit OFFSET :offset', [
-                    'package_id' => $packageId,
-                    'limit' => $filter->getLimit(),
-                    'offset' => $filter->getOffset(),
-                ]));
+                'package_id' => $packageId,
+                'limit' => $filter->getLimit(),
+                'offset' => $filter->getOffset(),
+            ]));
     }
 
     public function getScanResultsCount(string $packageId): int
@@ -381,18 +381,18 @@ final class DbalPackageQuery implements PackageQuery
     {
         return array_map(function (array $data): PackageName {
             return new PackageName($data['id'], $data['name'], $data['alias']);
-            }, $this->connection->fetchAllAssociative(
-                'SELECT p.id, p.name, o.alias
+        }, $this->connection->fetchAllAssociative(
+            'SELECT p.id, p.name, o.alias
             FROM organization_package p
             JOIN organization o ON o.id = p.organization_id
             WHERE p.name IS NOT NULL AND p.last_sync_error IS NULL
             GROUP BY p.id, o.alias
             ORDER BY p.last_sync_at ASC
             LIMIT :limit OFFSET :offset', [
-                    'limit' => $limit,
-                    'offset' => $offset,
-                ]
-            ));
+                'limit' => $limit,
+                'offset' => $offset,
+            ]
+        ));
     }
 
     public function getAllSynchronizedCount(): int
@@ -477,18 +477,18 @@ final class DbalPackageQuery implements PackageQuery
                 0,
                 new \DateTimeImmutable()
             );
-            }, $this->connection->fetchAllAssociative(
-                'SELECT
+        }, $this->connection->fetchAllAssociative(
+            'SELECT
                 id,
                 version,
                 reference
             FROM organization_package_version
             WHERE stability != :stability
             AND package_id = :package_id',
-                [
-                    'package_id' => $packageId,
-                    'stability' => VersionEntity::STABILITY_STABLE,
-                ]
-            ));
+            [
+                'package_id' => $packageId,
+                'stability' => VersionEntity::STABILITY_STABLE,
+            ]
+        ));
     }
 }

@@ -21,7 +21,7 @@ final class WebhookController extends AbstractController
 
     public function __construct(
         WebhookRequests $webhookRequests,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->webhookRequests = $webhookRequests;
         $this->messageBus = $messageBus;

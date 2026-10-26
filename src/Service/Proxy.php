@@ -23,7 +23,7 @@ final class Proxy
         string $name,
         string $url,
         FilesystemOperator $proxyFilesystem,
-        Downloader $downloader
+        Downloader $downloader,
     ) {
         $this->name = $name;
         $this->url = \rtrim($url, '/');

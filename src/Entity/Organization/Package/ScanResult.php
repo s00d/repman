@@ -11,9 +11,11 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * @ORM\Entity(repositoryClass="Buddy\Repman\Repository\ScanResultRepository")
+ *
  * @ORM\Table(
  *     name="organization_package_scan_result",
  *     indexes={
+ *
  *      @Index(name="date_idx", columns={"date"})
  *     }
  * )
@@ -28,12 +30,14 @@ class ScanResult
 
     /**
      * @ORM\Id
+     *
      * @ORM\Column(type="uuid", unique=true)
      */
     private UuidInterface $id;
 
     /**
      * @ORM\ManyToOne(targetEntity="Buddy\Repman\Entity\Organization\Package")
+     *
      * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private Package $package;
@@ -55,6 +59,7 @@ class ScanResult
 
     /**
      * @var array<string,array<string,string>|string>
+     *
      * @ORM\Column(type="json")
      */
     private array $content = [];

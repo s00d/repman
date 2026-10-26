@@ -117,7 +117,7 @@ final class FixturesManager
         return $userId;
     }
 
-    public function createPackage(string $id, string $organization = 'buddy', string $organizationId = null): void
+    public function createPackage(string $id, string $organization = 'buddy', ?string $organizationId = null): void
     {
         $organization = $organizationId !== null ? $organizationId : $this->createOrganization($organization, $this->createUser());
         $this->dispatchMessage(
@@ -216,7 +216,7 @@ final class FixturesManager
         string $type,
         string $accessToken = 'secret',
         ?string $refreshToken = null,
-        ?\DateTimeImmutable $expiresAt = null
+        ?\DateTimeImmutable $expiresAt = null,
     ): string {
         $this->dispatchMessage(
             new AddOAuthToken(

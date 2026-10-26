@@ -38,7 +38,7 @@ final class Package
         ?string $webhookCreatedError = null,
         ?ScanResult $scanResult = null,
         int $keepLastReleases = 0,
-        bool $enableSecurityScan = true
+        bool $enableSecurityScan = true,
     ) {
         $this->id = $id;
         $this->organizationId = $organizationId;

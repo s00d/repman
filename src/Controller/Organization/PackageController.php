@@ -43,7 +43,7 @@ final class PackageController extends AbstractController
     public function __construct(
         UserOAuthTokenProvider $oauthProvider,
         IntegrationRegister $integrations,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->oauthProvider = $oauthProvider;
         $this->integrations = $integrations;
@@ -52,6 +52,7 @@ final class PackageController extends AbstractController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/package/new/{type?}", name="organization_package_new", methods={"GET","POST"}, requirements={"organization"="%organization_pattern%"})
      */
     public function packageNew(Organization $organization, Request $request, ?string $type): Response
@@ -127,6 +128,7 @@ final class PackageController extends AbstractController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/package/{package}/edit", name="organization_package_edit", methods={"GET","POST"}, requirements={"organization"="%organization_pattern%","package"="%uuid_pattern%"})
      */
     public function editPackage(Organization $organization, Package $package, Request $request): Response
@@ -164,7 +166,7 @@ final class PackageController extends AbstractController
 
     /**
      * @param array<string,int|string> $choices
-     * @param FormInterface<mixed> $form
+     * @param FormInterface<mixed>     $form
      */
     private function addRepositoriesChoiceType(FormInterface $form, array $choices): void
     {

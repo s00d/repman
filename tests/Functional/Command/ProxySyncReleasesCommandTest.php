@@ -93,7 +93,7 @@ final class ProxySyncReleasesCommandTest extends FunctionalTestCase
 
     private function cache(): FilesystemAdapter
     {
-        return $this->cache = $this->cache ?? new FilesystemAdapter('test', 0, self::$kernel->getCacheDir());
+        return $this->cache ??= new FilesystemAdapter('test', 0, self::$kernel->getCacheDir());
     }
 
     private function fakeLockFactory(): LockFactory

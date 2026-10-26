@@ -34,7 +34,7 @@ final class PackageDetails
         int $keepLastReleases = 0,
         ?string $readme = null,
         ?string $replacementPackage = null,
-        bool $enableSecurityScan = true
+        bool $enableSecurityScan = true,
     ) {
         $this->id = $id;
         $this->organizationId = $organizationId;

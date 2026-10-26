@@ -6,8 +6,8 @@ namespace Buddy\Repman\Tests\Functional\Command;
 
 use Buddy\Repman\Command\ClearMetadataCacheCommand;
 use Buddy\Repman\Tests\Functional\FunctionalTestCase;
-use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 
@@ -15,7 +15,7 @@ final class ClearMetadataCacheCommandTest extends FunctionalTestCase
 {
     public function testClearMetadataCache(): void
     {
-        $basePath = \sys_get_temp_dir().'/'.'repman/clear-metadata';
+        $basePath = \sys_get_temp_dir().'/repman/clear-metadata';
 
         $ignoredFiles = [
             $basePath.'/dist/.svn/foo/packages.json',
@@ -50,7 +50,7 @@ final class ClearMetadataCacheCommandTest extends FunctionalTestCase
 
     public function testNoMetadataFilesFound(): void
     {
-        $basePath = \sys_get_temp_dir().'/'.'repman/clear-metadata';
+        $basePath = \sys_get_temp_dir().'/repman/clear-metadata';
 
         $command = new ClearMetadataCacheCommand(new Filesystem(new LocalFilesystemAdapter($basePath)));
         $commandTester = new CommandTester($command);
@@ -65,7 +65,7 @@ final class ClearMetadataCacheCommandTest extends FunctionalTestCase
     private function prepareTempFiles(
         string $packagesFile,
         string $distFile,
-        array $ignoredFiles
+        array $ignoredFiles,
     ): void {
         $this->ensureDirExist($packagesFile);
         $this->ensureDirExist($distFile);

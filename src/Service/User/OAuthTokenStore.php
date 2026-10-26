@@ -91,7 +91,7 @@ class OAuthTokenStore
     public function __construct(
         string $databaseUrl,
         int $lockTimeoutMs = self::DEFAULT_LOCK_TIMEOUT_MS,
-        int $connectRetryDelayMs = self::DEFAULT_CONNECT_RETRY_DELAY_MS
+        int $connectRetryDelayMs = self::DEFAULT_CONNECT_RETRY_DELAY_MS,
     ) {
         $this->databaseUrl = $databaseUrl;
         $this->lockTimeoutMs = $lockTimeoutMs;

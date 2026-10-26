@@ -11,6 +11,7 @@ final class JsonTest extends TestCase
 {
     /**
      * @param array<mixed> $data
+     *
      * @dataProvider decodeDataProvider
      */
     public function testJsonDecode(array $data, string $json): void

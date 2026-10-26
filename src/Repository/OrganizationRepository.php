@@ -14,6 +14,7 @@ use Ramsey\Uuid\UuidInterface;
  * @method Organization|null findOneBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null)
  * @method Organization[]    findAll()
  * @method Organization[]    findBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null, $limit = null, $offset = null)
+ *
  * @extends ServiceEntityRepository<Organization>
  */
 class OrganizationRepository extends ServiceEntityRepository

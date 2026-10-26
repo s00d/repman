@@ -24,7 +24,7 @@ final class UserController extends AbstractController
 
     public function __construct(
         UserQuery $userQuery,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->userQuery = $userQuery;
         $this->messageBus = $messageBus;

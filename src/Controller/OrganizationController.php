@@ -51,7 +51,7 @@ final class OrganizationController extends AbstractController
     public function __construct(
         PackageQuery $packageQuery,
         OrganizationQuery $organizationQuery,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->packageQuery = $packageQuery;
         $this->organizationQuery = $organizationQuery;
@@ -94,6 +94,7 @@ final class OrganizationController extends AbstractController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/package/{package}", name="organization_package_remove", methods={"DELETE"}, requirements={"organization"="%organization_pattern%","package"="%uuid_pattern%"})
      */
     public function removePackage(Organization $organization, Package $package): Response
@@ -259,6 +260,7 @@ final class OrganizationController extends AbstractController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}/settings", name="organization_settings", methods={"GET","POST"}, requirements={"organization"="%organization_pattern%"})
      */
     public function settings(Organization $organization, Request $request): Response
@@ -300,12 +302,13 @@ final class OrganizationController extends AbstractController
 
     /**
      * @IsGranted("ROLE_ORGANIZATION_OWNER", subject="organization")
+     *
      * @Route("/organization/{organization}", name="organization_remove", methods={"DELETE"}, requirements={"organization"="%organization_pattern%"})
      */
     public function removeOrganization(Organization $organization): Response
     {
         $offset = 0;
-        while (($packages = $this->packageQuery->findAll($organization->id(), new PackageQuery\Filter($offset, $limit = 100))) !== []) {
+        while (($packages = $this->packageQuery->findAll($organization->id(), new PackageFilter($offset, $limit = 100))) !== []) {
             array_walk($packages, [$this, 'tryToRemoveWebhook']);
             $offset += $limit;
         }
@@ -387,8 +390,8 @@ final class OrganizationController extends AbstractController
     {
         $user = parent::getUser();
 
-        return $user instanceof User &&
-            $organization->isOwner($user->id()) &&
-            $this->packageQuery->count($organization->id(), new PackageFilter()) === 0;
+        return $user instanceof User
+            && $organization->isOwner($user->id())
+            && $this->packageQuery->count($organization->id(), new PackageFilter()) === 0;
     }
 }

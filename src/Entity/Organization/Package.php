@@ -15,6 +15,7 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * @ORM\Entity
+ *
  * @ORM\Table(
  *     name="organization_package",
  *     uniqueConstraints={@ORM\UniqueConstraint(name="package_name", columns={"organization_id", "name"})}
@@ -26,6 +27,7 @@ class Package
 
     /**
      * @ORM\Id
+     *
      * @ORM\Column(type="uuid", unique=true)
      */
     private UuidInterface $id;
@@ -62,6 +64,7 @@ class Package
 
     /**
      * @ORM\ManyToOne(targetEntity="Buddy\Repman\Entity\Organization", inversedBy="packages")
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private Organization $organization;
@@ -117,12 +120,14 @@ class Package
 
     /**
      * @var Collection<int,Version>|Version[]
+     *
      * @ORM\OneToMany(targetEntity="Buddy\Repman\Entity\Organization\Package\Version", mappedBy="package", cascade={"persist"}, orphanRemoval=true)
      */
     private Collection $versions;
 
     /**
      * @var Collection<int,Link>|Link[]
+     *
      * @ORM\OneToMany(targetEntity="Buddy\Repman\Entity\Organization\Package\Link", mappedBy="package", cascade={"persist"}, orphanRemoval=true)
      */
     private Collection $links;

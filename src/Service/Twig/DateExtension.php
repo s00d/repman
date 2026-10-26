@@ -17,8 +17,8 @@ use Buddy\Repman\Security\Model\User;
 use Symfony\Component\Intl\Timezones;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment;
-use Twig\Extension\CoreExtension;
 use Twig\Extension\AbstractExtension;
+use Twig\Extension\CoreExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 

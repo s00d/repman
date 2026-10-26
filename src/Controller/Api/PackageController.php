@@ -50,7 +50,7 @@ final class PackageController extends ApiController
         PackageQuery $packageQuery,
         UserOAuthTokenProvider $oauthProvider,
         IntegrationRegister $integrations,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->packageQuery = $packageQuery;
         $this->oauthProvider = $oauthProvider;
@@ -75,6 +75,7 @@ final class PackageController extends ApiController
      * @OA\Response(
      *     response=200,
      *     description="Returns list of organization's packages",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Packages::class)
      *     )
@@ -120,6 +121,7 @@ final class PackageController extends ApiController
      * @OA\Response(
      *     response=200,
      *     description="Returns a single package",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Package::class)
      *     )
@@ -129,7 +131,6 @@ final class PackageController extends ApiController
      *     response=404,
      *     description="Package not found"
      * )
-     *
      * @OA\Response(
      *     response=403,
      *     description="Forbidden"
@@ -163,12 +164,10 @@ final class PackageController extends ApiController
      *     response=200,
      *     description="Package removed, if there was a problem with removing the webhook, the 'warning' field will appear"
      * )
-     *
      * @OA\Response(
      *     response=404,
      *     description="Package not found"
      * )
-     *
      * @OA\Response(
      *     response=403,
      *     description="Forbidden"
@@ -205,7 +204,6 @@ final class PackageController extends ApiController
      *     response=200,
      *     description="Package updated"
      * )
-     *
      * @OA\Response(
      *     response=404,
      *     description="Package not found"
@@ -238,6 +236,7 @@ final class PackageController extends ApiController
      * )
      *
      * @OA\RequestBody(
+     *
      *     @Model(type=EditPackageType::class)
      * )
      *
@@ -245,17 +244,14 @@ final class PackageController extends ApiController
      *     response=200,
      *     description="Package updated"
      * )
-     *
      * @OA\Response(
      *     response=404,
      *     description="Package not found"
      * )
-     *
      * @OA\Response(
      *     response=403,
      *     description="Forbidden"
      * )
-     *
      * @OA\Response(
      *     response=400,
      *     description="Bad request"
@@ -300,12 +296,14 @@ final class PackageController extends ApiController
      * )
      *
      * @OA\RequestBody(
+     *
      *     @Model(type=AddPackageType::class)
      * )
      *
      * @OA\Response(
      *     response=201,
      *     description="Returns added package",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Package::class)
      *     )
@@ -314,6 +312,7 @@ final class PackageController extends ApiController
      * @OA\Response(
      *     response=400,
      *     description="Bad request",
+     *
      *     @OA\JsonContent(
      *        ref=@Model(type=Errors::class)
      *     )

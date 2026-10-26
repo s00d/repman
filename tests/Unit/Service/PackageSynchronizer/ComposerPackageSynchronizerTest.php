@@ -14,8 +14,8 @@ use Buddy\Repman\Service\PackageSynchronizer\ComposerPackageSynchronizer;
 use Buddy\Repman\Service\User\UserOAuthTokenRefresher;
 use Buddy\Repman\Tests\Doubles\FakeDownloader;
 use Buddy\Repman\Tests\MotherObject\PackageMother;
-use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 

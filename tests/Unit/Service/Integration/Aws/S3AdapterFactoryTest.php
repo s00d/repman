@@ -220,7 +220,7 @@ class S3AdapterFactoryTest extends TestCase
     public function testOpaqueWithoutCredentialsWillThrowError(
         ?string $key,
         ?string $secret,
-        string $expectedMessage
+        string $expectedMessage,
     ): void {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage($expectedMessage);

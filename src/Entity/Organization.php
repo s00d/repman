@@ -22,6 +22,7 @@ class Organization
 {
     /**
      * @ORM\Id
+     *
      * @ORM\Column(type="uuid", unique=true)
      */
     private UuidInterface $id;
@@ -43,24 +44,28 @@ class Organization
 
     /**
      * @var Collection<int,Package>|Package[]
+     *
      * @ORM\OneToMany(targetEntity="Buddy\Repman\Entity\Organization\Package", mappedBy="organization", cascade={"persist"}, orphanRemoval=true)
      */
     private Collection $packages;
 
     /**
      * @var Collection<int,Token>|Token[]
+     *
      * @ORM\OneToMany(targetEntity="Buddy\Repman\Entity\Organization\Token", mappedBy="organization", cascade={"persist"}, orphanRemoval=true)
      */
     private Collection $tokens;
 
     /**
      * @var Collection<int,Invitation>|Invitation[]
+     *
      * @ORM\OneToMany(targetEntity="Buddy\Repman\Entity\Organization\Invitation", mappedBy="organization", cascade={"persist"}, orphanRemoval=true)
      */
     private Collection $invitations;
 
     /**
      * @var Collection<int,Member>|Member[]
+     *
      * @ORM\OneToMany(targetEntity="Buddy\Repman\Entity\Organization\Member", mappedBy="organization", cascade={"persist"}, orphanRemoval=true)
      */
     private Collection $members;

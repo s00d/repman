@@ -11,6 +11,7 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * @ORM\Entity
+ *
  * @ORM\Table(
  *     name="organization_member",
  *     uniqueConstraints={@ORM\UniqueConstraint(name="user_organization", columns={"user_id", "organization_id"})}
@@ -23,18 +24,21 @@ class Member
 
     /**
      * @ORM\Id
+     *
      * @ORM\Column(type="uuid", unique=true)
      */
     private UuidInterface $id;
 
     /**
      * @ORM\ManyToOne(targetEntity="Buddy\Repman\Entity\User", inversedBy="memberships")
+     *
      * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private User $user;
 
     /**
      * @ORM\ManyToOne(targetEntity="Buddy\Repman\Entity\Organization", inversedBy="members")
+     *
      * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private Organization $organization;

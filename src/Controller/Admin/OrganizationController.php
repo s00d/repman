@@ -24,7 +24,7 @@ final class OrganizationController extends AbstractController
 
     public function __construct(
         OrganizationQuery $organizationQuery,
-        MessageBusInterface $messageBus
+        MessageBusInterface $messageBus,
     ) {
         $this->organizationQuery = $organizationQuery;
         $this->messageBus = $messageBus;

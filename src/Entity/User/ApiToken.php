@@ -9,12 +9,14 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity
+ *
  * @ORM\Table(name="user_api_token")
  */
 class ApiToken
 {
     /**
      * @ORM\Id
+     *
      * @ORM\Column(type="string", length=64, unique=true)
      */
     private string $value;
@@ -26,6 +28,7 @@ class ApiToken
 
     /**
      * @ORM\ManyToOne(targetEntity="Buddy\Repman\Entity\User", inversedBy="apiTokens")
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private User $user;

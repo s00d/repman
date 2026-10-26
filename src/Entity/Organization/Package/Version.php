@@ -10,10 +10,12 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * @ORM\Entity
+ *
  * @ORM\Table(
  *     name="organization_package_version",
  *     uniqueConstraints={@ORM\UniqueConstraint(name="package_version", columns={"package_id", "version"})},
  *     indexes={
+ *
  *      @ORM\Index(name="version_package_id_idx", columns={"package_id"}),
  *      @ORM\Index(name="version_date_idx", columns={"date"})
  *     }
@@ -25,12 +27,14 @@ class Version
 
     /**
      * @ORM\Id()
+     *
      * @ORM\Column(type="uuid")
      */
     private UuidInterface $id;
 
     /**
      * @ORM\ManyToOne(targetEntity="Buddy\Repman\Entity\Organization\Package", inversedBy="versions")
+     *
      * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private Package $package;
@@ -68,7 +72,7 @@ class Version
         string $reference,
         int $size,
         \DateTimeImmutable $date,
-        string $stability
+        string $stability,
     ) {
         $this->id = $id;
         $this->version = $version;
