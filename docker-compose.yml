@@ -36,7 +36,7 @@ services:
 
   # each service starts as root only to hand var/ (a bind mount, possibly written by an older
   # version as root) to www-data, then runs as www-data; php-fpm's workers run as www-data.
-  # public/ is the checkout's, served by caddy: app puts the frontend build of its image there.
+  # public/ is the checkout's, served by nginx (Caddy): app puts the frontend build of its image there.
   # var/cache is an anonymous volume, which `up --build` keeps across image updates: every
   # service rebuilds its cache on start so it never runs new code with an old container.
   app:
@@ -99,10 +99,11 @@ services:
       app:
         condition: service_healthy
 
-  # web server and certificates, see docker/caddy/Caddyfile: with ACME_EMAIL set it gets a Let's Encrypt
-  # certificate for the app, the proxy and every organization's host by itself. Port 80 is only needed
-  # to redirect plain http (TLS-ALPN on 443 answers Let's Encrypt), publish it in an override if wanted.
-  caddy:
+  # web server and certificates: Caddy, see docker/caddy/Caddyfile. With ACME_EMAIL set it gets a Let's
+  # Encrypt certificate for the app, the proxy and every organization's host by itself. Port 80 is only
+  # needed to redirect plain http (TLS-ALPN on 443 answers Let's Encrypt), publish it in an override if
+  # wanted. Still named nginx, so docker-compose.override.yml files written for it keep working.
+  nginx:
     << : *restart_policy
     image: caddy:2.11-alpine
     env_file: *env_files
