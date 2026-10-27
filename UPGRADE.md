@@ -26,6 +26,11 @@
   (Flysystem dropped the cache adapter); you can switch to `storage.local` / `storage.s3`.
 - `GA_TRACKING` (Universal Analytics, shut down by Google in 2023) was removed; `GA4_TRACKING` stays.
 - `MESSENGER_TRANSPORT_DSN` is now honoured; it defaults to the database as before.
+- the security scanner asks Packagist's security advisories API (GitHub Advisory Database plus
+  FriendsOfPHP/security-advisories, what `composer audit` uses) instead of a git clone of
+  FriendsOfPHP/security-advisories, so it needs to reach packagist.org instead of github.com. The clone in
+  `var/security-advisories` is no longer read and can be deleted; the directory now only keeps the time of
+  the last check. The first `repman:security:update-db` scans all packages again.
 
 ## UPGRADE FROM 1.1.x to 1.2.x
 

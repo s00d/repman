@@ -16,7 +16,7 @@ parameters:
     router.request_context.scheme: '%env(resolve:APP_URL_SCHEME)%'
     router.request_context.host: '%env(default:domain:APP_PUBLIC_HOST)%'
     security_advisories_db_dir: '%env(resolve:SECURITY_ADVISORIES_DB_DIR)%'
-    security_advisories_db_repo: 'https://github.com/FriendsOfPHP/security-advisories.git'
+    security_advisories_api_url: 'https://packagist.org/api/security-advisories/'
     instance_id_file: '%kernel.project_dir%/var/instance-id'
     vite_manifest: '%kernel.project_dir%/public/build/.vite/manifest.json'
     vite_base: '/build/'
@@ -105,10 +105,10 @@ services:
                 bitbucket: '%env(OAUTH_BITBUCKET_CLIENT_ID)%'
                 buddy: '%env(OAUTH_BUDDY_CLIENT_ID)%'
 
-    Buddy\Repman\Service\Security\SecurityChecker\SensioLabsSecurityChecker:
+    Buddy\Repman\Service\Security\SecurityChecker\PackagistSecurityChecker:
         arguments:
-            $databaseDir: '%security_advisories_db_dir%'
-            $databaseRepo: '%security_advisories_db_repo%'
+            $apiUrl: '%security_advisories_api_url%'
+            $stateDir: '%security_advisories_db_dir%'
 
     Buddy\Repman\Service\Telemetry:
         arguments:

@@ -30,6 +30,12 @@ On next release:
 - Docker: the database image upgrades data of an older PostgreSQL (upstream releases shipped 11) to 17 in place;
   app waits for the database, consumer and cron for the migrations; own settings live in `.env.docker.local`
 - `COMPOSER_AUTH` (e.g. a GitHub token against the API rate limit) is used when packages are synchronized
+- Security scans use Packagist's security advisories API (GitHub Advisory Database plus FriendsOfPHP) instead of a
+  git clone of FriendsOfPHP alone, which missed most advisories (e.g. 2 of 18 for league/commonmark)
+- Downloads go through Symfony HttpClient (retries, redirects, concurrency) instead of ReactPHP and own retry code;
+  clue/mq-react and react/* are no longer dependencies
+- Bitbucket workspaces are listed through bitbucket/client instead of an own endpoint class; GitLab projects are
+  fetched once instead of twice (owned projects are part of the membership listing)
 
 ### Fixed
 - Prefer the VCS tag/branch name over a hardcoded `version` in composer.json when syncing (tags were silently skipped: the sync looked successful but the release never appeared, [#715](https://github.com/repman-io/repman/pull/715))
