@@ -137,6 +137,19 @@ final class ComposerPackageSynchronizerTest extends TestCase
         self::assertStringEqualsFile($dir.'/dev-main_'.$ref.'.lock', '{"packages":[{"name":"new/dep","version":"2.0.0"}]}');
         self::assertSame([], glob($dir.'/1.0.0.0_*'));
 
+        // a new release: the locks of the previous one are dropped, nothing scans them any more
+        file_put_contents($repoDir.'/composer.lock', '{"packages":[]}');
+        $git('commit', '-am', 'drop dependencies');
+        $git('tag', '1.2.0');
+        $newRef = trim($git('rev-parse', 'HEAD'));
+        $this->synchronizer->synchronize($package);
+
+        $found = glob($dir.'/*.lock');
+        self::assertIsArray($found);
+        $locks = array_map(basename(...), $found);
+        sort($locks);
+        self::assertSame(['1.2.0.0_'.$newRef.'.lock', 'dev-main_'.$newRef.'.lock'], $locks);
+
         (new \Symfony\Component\Filesystem\Filesystem())->remove([$repoDir, $dir, $this->baseDir.'/buddy/p/buddy-works/locked-app.json']);
     }
 
