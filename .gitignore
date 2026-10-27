@@ -28,8 +28,6 @@
 
 ###> Docker ###
 docker-compose.*.yml
-/docker/logs/nginx/*
-!/docker/logs/nginx/.gitkeep
 /docker/nginx/ssl/certs/*
 !/docker/nginx/ssl/certs/.gitkeep
 /docker/nginx/ssl/private/*
