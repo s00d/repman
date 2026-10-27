@@ -36,7 +36,9 @@ Documentation: [https://repman.io/docs/](https://repman.io/docs/)
 
 [https://repman.io/docs/standalone/#docker-installation](https://repman.io/docs/standalone/#docker-installation)
 
-`docker-compose.yml` builds the image from this checkout: `docker compose up -d --build`.
+`docker-compose.yml` builds the image from this checkout: `docker compose build --pull && docker compose up -d`.
+Rebuild with `--pull` whenever PHP publishes a security release, the build refuses a PHP version with known
+remote code execution flaws.
 
 #### Private Git repositories over SSH
 
@@ -96,10 +98,11 @@ data was kept, packages were added and installed afterwards. See [UPGRADE.md](UP
    had changed `docker-compose.yml` (ports, a database image), put those changes into a
    `docker-compose.override.yml` instead. Later updates of the fork are a plain `git pull`.
 
-4. Build and start the new version:
+4. Build and start the new version (`--pull` fetches the current PHP patch release):
 
    ```bash
-   docker compose up -d --build
+   docker compose build --pull
+   docker compose up -d
    docker compose ps               # wait until app is "healthy"
    ```
 
@@ -357,7 +360,8 @@ Only port 443 is published. Plain http is redirected to https; publish port 80 i
 To build the image and start all containers run:
 
 ```bash
-docker compose up -d --build
+docker compose build --pull
+docker compose up -d
 ```
 
 ## Support

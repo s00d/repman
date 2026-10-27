@@ -7,7 +7,8 @@
   changes, read [Symfony's UPGRADE-6.0 to 6.4](https://github.com/symfony/symfony/blob/6.4/UPGRADE-6.0.md).
 - run the migrations: `bin/console doctrine:migrations:migrate` (package link constraints become TEXT)
 - clear the cache: `rm -rf var/cache/*`
-- docker-compose.yml now builds the image from the checkout (`docker compose up -d --build`) instead of
+- docker-compose.yml now builds the image from the checkout (`docker compose build --pull`, then
+  `docker compose up -d`) instead of
   pulling `buddy/repman:1.3.4`, and the containers run as `www-data`. On start, ownership of `var/` is
   handed to `www-data`, so files an older version wrote as root keep working. The crontab moved from
   `docker/crontabs/root` to `docker/crontabs/www-data`.
