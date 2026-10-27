@@ -16,6 +16,8 @@
   in `docker/nginx/ssl/` is used as before, including the self-signed one the nginx setup generated; set
   `ACME_EMAIL` to get Let's Encrypt certificates instead, see "HTTPS and Let's Encrypt" in the README.
   `docker/logs/nginx` is no longer written (logs: `docker compose logs nginx`) and can be deleted.
+- docker: installations that ran the `buddy/repman` image without a git checkout (`docker run`, an own
+  compose file) move over with a database dump and an archive of `var/`, see the README.
 - docker: your settings belong in `.env.docker.local` (ignored by git, overrides `.env.docker`), compose
   changes in `docker-compose.override.yml`; see the upgrade steps in the README.
 - docker: the database runs PostgreSQL 17 (`pgautoupgrade/pgautoupgrade`, the official image plus an

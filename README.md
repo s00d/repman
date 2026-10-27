@@ -61,7 +61,9 @@ default branch, so packages synchronized before this release need one more synch
 
 #### Upgrading a Docker installation
 
-Run these steps in the checkout your installation runs from. They were tested by upgrading the 1.4.0 release
+Run these steps in the checkout your installation runs from; without one (`docker run` or a compose file of
+your own), see [Switching from the `buddy/repman` image without a checkout](#switching-from-the-buddyrepman-image-without-a-checkout).
+They were tested by upgrading the 1.4.0 release
 (its PostgreSQL 11 database is upgraded in place) and a `master` checkout with organizations, packages,
 tokens, invitations and download statistics: all data was kept, packages were added and installed
 afterwards. See [UPGRADE.md](UPGRADE.md) for what changed.
@@ -115,10 +117,6 @@ afterwards. See [UPGRADE.md](UPGRADE.md) for what changed.
    Packages whose first synchronization failed have no name yet and are skipped by
    `synchronize-all`; use *Update* in their *Actions* menu on the package list.
 
-If you ran the `buddy/repman` image without a git checkout, clone this repository into a directory with
-the same name as the old one (Docker names the database volume after the directory), move your `var/`
-directory into it and your `.env.docker` to `.env.docker.local`, then continue with step 4.
-
 Rolling back (tested back to 1.4.0): the upgraded database can no longer be read by an older PostgreSQL,
 so the backup is restored into a new one.
 
@@ -131,6 +129,63 @@ docker compose up -d
 docker compose exec -T database pg_restore -U main -d main --clean --if-exists < repman-backup.dump
 tar xzf repman-var-backup.tgz
 ```
+
+#### Switching from the `buddy/repman` image without a checkout
+
+For installations that ran the published image with `docker run` or a compose file of their own. Their
+containers, volumes and database are named differently and their settings live in the container's
+environment, so the data moves over through a database dump and an archive of `var/`. Tested by switching a
+1.4.0 installation of four `docker run` containers with its own database user and named volumes: all data
+was kept. Replace `repman-app` and `repman-db` below with the names of your app and database containers
+(`docker ps`).
+
+1. Note what the old setup uses, while it runs:
+
+   ```bash
+   docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' repman-app > old-env.txt
+   docker inspect -f '{{range .Mounts}}{{if .Name}}{{.Name}}{{else}}{{.Source}}{{end}} -> {{.Destination}}{{println}}{{end}}' repman-app
+   ```
+
+   `old-env.txt` holds your settings; `DATABASE_URL` in it names the database user, password and
+   database. The second command shows what is mounted at `/app/var` (a volume name or a directory).
+
+2. Back up the database and `var/`. With the database in a container (user and database from
+   `DATABASE_URL`; `<var>` is the volume name or directory from step 1):
+
+   ```bash
+   docker exec repman-db pg_dump -U <user> -d <database> -Fc > repman-backup.dump
+   docker run --rm -v <var>:/data alpine tar czf - -C /data . > repman-var-backup.tgz
+   ```
+
+3. Stop the old containers (`docker stop`, or `docker compose down` where its compose file is). Keep them
+   until the new version runs: starting them again is the way back.
+
+4. Get the new version and take over the settings and the files:
+
+   ```bash
+   git clone https://github.com/repman-io/repman.git && cd repman
+   grep -E '^(APP_|MAILER_|OAUTH_|SENTRY_|GA4_|STORAGE_|EWZ_|PROXY_|PACKAGES_|MESSENGER_|TRUSTED_|COMPOSER_AUTH)' ../old-env.txt > .env.docker.local
+   tar xzf ../repman-var-backup.tgz -C var
+   ```
+
+   Check `.env.docker.local`. `DATABASE_URL` is left out on purpose: the database of the new setup gets the
+   dump in the next step. If your database is not a container of this setup but a server of its own,
+   add your `DATABASE_URL` and skip the restore; any PostgreSQL from 11 up works.
+
+5. Build, restore the database into the new one, then start everything:
+
+   ```bash
+   docker compose build --pull
+   docker compose up -d --wait database
+   docker compose exec -T database pg_restore -U main -d main --no-owner --no-acl < ../repman-backup.dump
+   docker compose up -d
+   ```
+
+   Then check the result and resynchronize as in step 5 of the upgrade above; artifact packages can be
+   installed again only after that. Rolling back: `docker compose down` here, then `docker start` the old
+   containers, which still have their data. Certificates: see
+   [HTTPS and Let's Encrypt](#https-and-lets-encrypt); a certificate of your own goes to
+   `docker/nginx/ssl/certs/server.crt` and `docker/nginx/ssl/private/server.key`.
 
 ### Ansible
 
