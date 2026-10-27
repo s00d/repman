@@ -178,6 +178,11 @@ nav[aria-label='Main'] > div {
             @apply grid gap-4 md:grid-cols-2 xl:grid-cols-3;
         }
 
+        /* long cards (scan reports) read better one per row */
+        &.table-rows tbody {
+            @apply md:grid-cols-1;
+        }
+
         & tr {
             @apply flex min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md;
         }
