@@ -34,12 +34,13 @@
         <div data-vue="VersionInstallsChart" data-props="{{ {
             versions: versions|map(version => {
                 version: version,
+                label: versionLabels[version] ?? version,
                 url: path('organization_package_version_stats', {organization: organization.alias, package: package.id, version: version, days: days}),
             }),
         }|json_encode }}">
             <ul class="list-disc pl-5">
                 {% for version in versions %}
-                    <li>{{ version }}</li>
+                    <li>{{ versionLabels[version] ?? version }}</li>
                 {% endfor %}
             </ul>
         </div>

@@ -114,7 +114,7 @@ nav[aria-label='Main'] > div {
     }
 
     .card-title {
-        @apply m-0 flex flex-1 flex-wrap items-center gap-2 text-base font-semibold;
+        @apply m-0 flex min-w-0 flex-1 basis-40 flex-wrap items-center gap-2 text-base font-semibold;
     }
 
     .card-body {

@@ -33,6 +33,7 @@ use Buddy\Repman\Query\User\OrganizationQuery;
 use Buddy\Repman\Query\User\PackageQuery;
 use Buddy\Repman\Query\User\PackageQuery\Filter as PackageFilter;
 use Buddy\Repman\Security\Model\User;
+use Composer\Semver\VersionParser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -132,8 +133,30 @@ final class OrganizationController extends AbstractController
             'package' => $package,
             'installs' => $this->packageQuery->getInstalls($package->id(), $days),
             'versions' => $this->packageQuery->getInstallVersions($package->id()),
+            'versionLabels' => $this->versionLabels($package->id()),
             'days' => $days,
         ]);
+    }
+
+    /**
+     * Downloads are recorded with the normalized version of the dist URL (3.0.2.0, 1.0.9999999.9999999-dev),
+     * so the stats show the version as the package names it (3.0.2, 1.0.x-dev).
+     *
+     * @return array<string,string>
+     */
+    private function versionLabels(string $packageId): array
+    {
+        $parser = new VersionParser();
+        $labels = [];
+        // ponytail: the 100 newest versions, older downloads keep the normalized version
+        foreach ($this->packageQuery->getVersions($packageId, new Filter(0, 100)) as $version) {
+            try {
+                $labels[$parser->normalize($version->version())] = $version->version();
+            } catch (\UnexpectedValueException) {
+            }
+        }
+
+        return $labels;
     }
 
     #[Route(path: '/organization/{organization}/package/{package}/stats/{version}', name: 'organization_package_version_stats', methods: ['GET'], requirements: ['organization' => '%organization_pattern%', 'package' => '%uuid_pattern%', 'version' => Requirement::CATCH_ALL])]

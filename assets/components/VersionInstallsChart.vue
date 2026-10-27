@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { Chart } from 'chart.js';
-import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 import { dataset, installsChart, type Point } from './chart';
 
 export interface VersionStats {
     version: string;
+    label: string;
     url: string;
 }
 
@@ -12,6 +13,7 @@ const props = defineProps<{ versions: VersionStats[] }>();
 
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
 const current = ref<string>();
+const currentLabel = computed(() => props.versions.find((version) => version.version === current.value)?.label);
 const loading = ref(false);
 const error = ref(false);
 let chart: Chart<'line', Point[]> | undefined;
@@ -30,7 +32,7 @@ async function select(version: VersionStats): Promise<void> {
         if (current.value !== version.version || !chart) {
             return;
         }
-        chart.data.datasets = [dataset(version.version, points)];
+        chart.data.datasets = [dataset(version.label, points)];
         chart.update();
     } catch {
         error.value = true;
@@ -66,15 +68,15 @@ onBeforeUnmount(() => chart?.destroy());
                         :aria-pressed="version.version === current"
                         @click="select(version)"
                     >
-                        {{ version.version }}
+                        {{ version.label }}
                     </button>
                 </li>
             </ul>
         </div>
         <div>
-            <p v-if="error" class="alert alert-danger">Could not load the statistics of {{ current }}.</p>
+            <p v-if="error" class="alert alert-danger">Could not load the statistics of {{ currentLabel }}.</p>
             <div class="relative h-72 sm:h-96" :class="{ 'opacity-50': loading }" :aria-busy="loading">
-                <canvas ref="canvas" role="img" :aria-label="`Daily installs of ${current ?? 'a version'}`"></canvas>
+                <canvas ref="canvas" role="img" :aria-label="`Daily installs of ${currentLabel ?? 'a version'}`"></canvas>
             </div>
         </div>
     </div>

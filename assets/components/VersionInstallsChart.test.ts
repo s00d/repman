@@ -9,8 +9,8 @@ vi.mock('./chart', () => ({
 }));
 
 const versions = [
-    { version: '1.1.0', url: '/stats/1.1.0?days=30' },
-    { version: 'dev-feature/x', url: '/stats/dev-feature/x?days=30' },
+    { version: '1.1.0.0', label: '1.1.0', url: '/stats/1.1.0.0?days=30' },
+    { version: 'dev-feature/x', label: 'dev-feature/x', url: '/stats/dev-feature/x?days=30' },
 ];
 
 function deferred() {
@@ -33,8 +33,9 @@ describe('VersionInstallsChart', () => {
 
         const wrapper = mount(VersionInstallsChart, { props: { versions } });
         await flushPromises();
-        expect(fetch).toHaveBeenLastCalledWith('/stats/1.1.0?days=30', expect.anything());
+        expect(fetch).toHaveBeenLastCalledWith('/stats/1.1.0.0?days=30', expect.anything());
         expect(chart.data.datasets[0]!.label).toBe('1.1.0');
+        expect(wrapper.get('[aria-pressed=true]').text()).toBe('1.1.0');
 
         await wrapper.findAll('button')[1]!.trigger('click');
         await flushPromises();

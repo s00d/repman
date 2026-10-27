@@ -61,7 +61,9 @@ Composer installs them from source and developers need access to the repository 
 
 The same steps switch an installation of repman-io/repman (a release such as 1.4.0, or its `master`) to
 this fork and upgrade the fork later; the database and `var/` keep their layout. Run them in the checkout
-your installation runs from. See [UPGRADE.md](UPGRADE.md) for what changed.
+your installation runs from. Tested from the 1.4.0 release (its PostgreSQL 11 database is upgraded in place)
+and from repman-io `master` with organizations, packages, tokens, invitations and download statistics: all
+data was kept, packages were added and installed afterwards. See [UPGRADE.md](UPGRADE.md) for what changed.
 
 1. Back up the database and `var/` (packages, proxy cache, logs) while the old version runs:
 
@@ -118,11 +120,18 @@ If you ran the `buddy/repman` image without a git checkout, clone this repositor
 the same name as the old one (Docker names the database volume after the directory), move your `var/`
 directory into it and your `.env.docker` to `.env.docker.local`, then continue with step 4.
 
-Rolling back: the upgraded database can no longer be read by an older PostgreSQL, so restore the backup.
-Stop the stack, check out the previous version, remove the database volume
-(`docker volume rm <directory name>_postgres-data`), start the old version, then run
-`docker compose exec -T database pg_restore -U main -d main --clean --if-exists < repman-backup.dump` and
-unpack `repman-var-backup.tgz` over `var/`.
+Rolling back (tested from this fork back to 1.4.0): the upgraded database can no longer be read by an older
+PostgreSQL, so the backup is restored into a new one.
+
+```bash
+docker compose down
+git checkout -B master <the tag or commit you ran before>
+git stash pop                                  # your old .env.docker and docker-compose.yml edits
+docker volume rm <directory name>_postgres-data
+docker compose up -d
+docker compose exec -T database pg_restore -U main -d main --clean --if-exists < repman-backup.dump
+tar xzf repman-var-backup.tgz
+```
 
 ### Ansible
 
