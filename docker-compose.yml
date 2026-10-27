@@ -96,22 +96,28 @@ services:
       app:
         condition: service_healthy
 
-  nginx:
+  # web server and certificates, see docker/caddy/Caddyfile: with ACME_EMAIL set it gets a Let's Encrypt
+  # certificate for the app, the proxy and every organization's host by itself. Port 80 is only needed
+  # to redirect plain http (TLS-ALPN on 443 answers Let's Encrypt), publish it in an override if wanted.
+  caddy:
     << : *restart_policy
-    image: nginx:1.30-alpine
+    image: caddy:2.11-alpine
     env_file: *env_files
-    command: ['/nginx/start.sh']
+    command: ['/etc/caddy/start.sh']
     ports:
       - 443:443
+      - 443:443/udp  # HTTP/3
     depends_on:
       - app
     volumes:
-      - app-public:/app/public
-      - docker-logs-nginx:/var/log/nginx
-      - docker-nginx-scripts:/nginx
-      # not over /etc/ssl/certs: that would hide the CA bundle the image needs to install openssl
-      - docker-nginx-ssl-certs:/etc/nginx/ssl/certs
-      - docker-nginx-ssl-private:/etc/nginx/ssl/private
+      - docker-caddy:/etc/caddy:ro
+      - app-public:/app/public:ro
+      # an own certificate, kept where the nginx setup had it
+      - docker-nginx-ssl-certs:/ssl/certs:ro
+      - docker-nginx-ssl-private:/ssl/private:ro
+      # ACME account, issued certificates and the internal CA
+      - caddy-data:/data
+      - caddy-config:/config
 
 volumes:
   postgres-data:
@@ -127,18 +133,14 @@ volumes:
       type: none
       device: $PWD/public
       o: bind
-  docker-logs-nginx:
+  docker-caddy:
     driver: local
     driver_opts:
       type: none
-      device: $PWD/docker/logs/nginx
+      device: $PWD/docker/caddy
       o: bind
-  docker-nginx-scripts:
-    driver: local
-    driver_opts:
-      type: none
-      device: $PWD/docker/nginx/scripts
-      o: bind
+  caddy-data:
+  caddy-config:
   docker-nginx-ssl-certs:
     driver: local
     driver_opts:

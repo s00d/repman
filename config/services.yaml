@@ -50,6 +50,12 @@ services:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
 
+    Buddy\Repman\Service\ServedHosts:
+        arguments:
+            $domain: '%domain%'
+            $domainSeparator: '%domain_separator%'
+            $organizationSeparator: '%organization_separator%'
+
     Buddy\Repman\Service\Integration\Aws\S3AdapterFactory:
         arguments:
             - '%env(STORAGE_AWS_REGION)%'

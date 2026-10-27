@@ -11,6 +11,10 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        # the web server's question whether to get a certificate for a host, see TlsController
+        tls:
+            pattern: ^/_tls/
+            security: false
         repo:
             host: '([a-z0-9_-]+)\%organization_separator%repo\%domain_separator%(.+)'
             logout: false

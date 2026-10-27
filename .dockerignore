@@ -3,7 +3,6 @@
 /buddy.yml
 /ansible
 /docker
-!/docker/nginx/cert
 /tests
 /var/*
 /vendor
