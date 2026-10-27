@@ -109,8 +109,9 @@ services:
       - app-public:/app/public
       - docker-logs-nginx:/var/log/nginx
       - docker-nginx-scripts:/nginx
-      - docker-nginx-ssl-certs:/etc/ssl/certs
-      - docker-nginx-ssl-private:/etc/ssl/private
+      # not over /etc/ssl/certs: that would hide the CA bundle the image needs to install openssl
+      - docker-nginx-ssl-certs:/etc/nginx/ssl/certs
+      - docker-nginx-ssl-private:/etc/nginx/ssl/private
 
 volumes:
   postgres-data:
