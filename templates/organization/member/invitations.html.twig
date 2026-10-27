@@ -9,39 +9,37 @@
 
 {% block content %}
 
-<div class="table-wrap">
-    <table class="table">
-        <thead>
+<table class="table">
+    <thead>
+        <tr>
+            <th>E-mail</th>
+            <th>Role</th>
+            <th>Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for invitation in invitations %}
             <tr>
-                <th>E-mail</th>
-                <th>Role</th>
-                <th>Options</th>
+                <td data-label="E-mail" data-card-title>{{ invitation.email }}</td>
+                <td data-label="Role">{{ invitation.role }}</td>
+                <td>
+                    <button
+                            class="btn btn-danger btn-sm"
+                            type="button"
+                            data-confirm-action="{{ path('organization_remove_invitation', {organization: organization.alias, token: invitation.token}) }}"
+                            data-confirm-method="DELETE"
+                    >
+                        Remove
+                    </button>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            {% for invitation in invitations %}
-                <tr>
-                    <td data-label="E-mail">{{ invitation.email }}</td>
-                    <td data-label="Role">{{ invitation.role }}</td>
-                    <td>
-                        <button
-                                class="btn btn-danger btn-sm"
-                                type="button"
-                                data-confirm-action="{{ path('organization_remove_invitation', {organization: organization.alias, token: invitation.token}) }}"
-                                data-confirm-method="DELETE"
-                        >
-                            Remove
-                        </button>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="3" class="text-center">currently no invitations</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        {% else %}
+            <tr>
+                <td colspan="3">No pending invitations</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% include 'component/pagination.html.twig' with {'path_name': 'organization_invitations', 'path_params': {'organization': organization.alias}} %}
 </div>
 {% endblock %}

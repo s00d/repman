@@ -18,91 +18,104 @@
 
     <label class="flex items-center gap-2 sm:ml-auto">
         Show
-        <input type="number" name="limit" value="{{ filter.limit }}" class="form-control w-20" min="1" />
+        <input type="number" name="limit" value="{{ filter.limit }}" class="form-control w-20" min="1" max="100" />
         entries
     </label>
 
+    {% if filter.hasSort %}
+        <input type="hidden" name="sort" value="{{ filter.sortColumn }}:{{ filter.sortOrder }}" />
+    {% endif %}
     <button class="btn btn-secondary btn-sm">Filter</button>
 </form>
 
-<div class="table-wrap">
-    <table class="table">
-        <thead>
+<nav class="mb-4 flex flex-wrap items-center gap-2" aria-label="Sort packages">
+    <span class="text-sm text-slate-500">Sort by</span>
+    {% include 'component/sort.html.twig' with {column: 'name', label: 'Name'} %}
+    {% include 'component/sort.html.twig' with {column: 'version', label: 'Latest version'} %}
+    {% include 'component/sort.html.twig' with {column: 'date', label: 'Released'} %}
+</nav>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Latest version</th>
+            <th>Released</th>
+            <th>Description</th>
+            {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}
+                <th>Webhook</th>
+                <th>Security</th>
+                <th><span class="sr-only">Actions</span></th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for package in packages %}
             <tr>
-                <th>Name {% include 'component/sort.html.twig' with {column: 'name'} %}</th>
-                <th>Latest version {% include 'component/sort.html.twig' with {column: 'version'} %}</th>
-                <th>Released {% include 'component/sort.html.twig' with {column: 'date'} %}</th>
-                <th>Description</th>
+                <td data-card-title>
+                    {% if package.name %}
+                        <a class="font-semibold" href="{{ path('organization_package_details', {organization: organization.alias, package: package.id}) }}">
+                            {{ package.name }}
+                        </a>
+                        <a class="block max-w-64 truncate text-xs text-slate-500 italic" href="{{ package.url }}" title="{{ package.url }}" target="_blank" rel="nofollow noopener noreferrer">
+                            {{ package.url }}
+                        </a>
+                        <span class="block text-xs text-slate-500 italic" title="{{ package.lastSyncAt|date_time }} ({{ gmt_offset() }})">synced: {{ package.lastSyncAt|date_time|time_diff }}</span>
+                    {% elseif package.lastSyncError is null %}
+                        Synchronizing from <a href="{{ package.url }}" target="_blank" rel="nofollow noopener noreferrer">
+                            {{ package.url }}
+                        </a>
+                        <div class="indeterminate mt-2" role="progressbar" aria-label="Synchronizing"></div>
+                    {% else %}
+                        <a class="block truncate" href="{{ package.url }}" title="{{ package.url }}" target="_blank" rel="nofollow noopener noreferrer">
+                            {{ package.url }}
+                        </a>
+                        <span class="block text-xs text-slate-500 italic">not synchronized yet</span>
+                    {% endif %}
+                </td>
+                <td data-label="Latest">{{ package.latestReleasedVersion }}</td>
+                <td data-label="Released" class="whitespace-nowrap">
+                    {%- if package.latestReleaseDate -%}
+                        <span title="{{ package.latestReleaseDate|date_time_utc }} ({{ gmt_offset() }})">{{ package.latestReleaseDate|date_time_utc|time_diff }}</span>
+                    {%- endif -%}
+                </td>
+                <td data-label="Description" data-stack>
+                    {% if package.lastSyncError %}
+                        <span class="badge badge-danger">Synchronization error</span>
+                        <span class="text-xs text-slate-500 italic" title="{{ package.lastSyncAt|date_time }} ({{ gmt_offset() }})">{{ package.lastSyncAt|date_time|time_diff }}</span>
+                        <div class="mt-1 max-h-40 overflow-auto rounded bg-slate-100 p-2 font-mono text-[0.7rem] break-all">
+                            {{ package.lastSyncError | nl2br }}
+                        </div>
+                    {% else %}
+                        {{ package.description|striptags }}
+                    {% endif %}
+                </td>
                 {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}
-                    <th class="text-center">Webhook</th>
-                    <th class="text-center">Security</th>
-                    <th><span class="sr-only">Actions</span></th>
+                    <td data-label="Webhook">
+                        {% if package.webhookCreatedAt is not empty %}
+                            <span class="font-semibold" title="{{ package.webhookCreatedAt | date_time }} ({{ gmt_offset() }})">
+                                created
+                            </span>
+                        {% else %}
+                            <small>N/A</small>
+                        {% endif %}
+                    </td>
+                    <td data-label="Security">
+                        {%- if not package.isEnabledSecurityScan or package.isSynchronizedSuccessfully -%}
+                            {% include 'component/scanBadge.html.twig' %}
+                        {%- endif -%}
+                    </td>
+                    <td>
+                        {% include 'component/packageActions.html.twig' %}
+                    </td>
                 {% endif %}
             </tr>
-        </thead>
-        <tbody>
-            {% for package in packages %}
-                <tr>
-                    <td>
-                        {% if package.name %}
-                            <a class="font-semibold" href="{{ path('organization_package_details', {organization: organization.alias, package: package.id}) }}">
-                                {{ package.name }}
-                            </a>
-                            <a class="block max-w-64 truncate text-xs text-slate-500 italic" href="{{ package.url }}" title="{{ package.url }}" target="_blank" rel="nofollow noopener noreferrer">
-                                {{ package.url }}
-                            </a>
-                            <span class="block text-xs text-slate-500 italic" title="{{ package.lastSyncAt|date_time }} ({{ gmt_offset() }})">synced: {{ package.lastSyncAt|date_time|time_diff }}</span>
-                        {% elseif package.lastSyncError is null %}
-                            Synchronizing from <a href="{{ package.url }}" target="_blank" rel="nofollow noopener noreferrer">
-                                {{ package.url }}
-                            </a>
-                            <div class="indeterminate mt-2" role="progressbar" aria-label="Synchronizing"></div>
-                        {% endif %}
-                    </td>
-                    <td data-label="Latest">{{ package.latestReleasedVersion }}</td>
-                    <td data-label="Released" class="whitespace-nowrap">
-                        {% if package.latestReleaseDate %}
-                            <span title="{{ package.latestReleaseDate|date_time_utc }} ({{ gmt_offset() }})">{{ package.latestReleaseDate|date_time_utc|time_diff }}</span>
-                        {% endif %}
-                    </td>
-                    <td data-label="Description">
-                        {% if package.lastSyncError %}
-                            <span class="badge badge-danger">Synchronization error</span>
-                            <span class="text-xs text-slate-500 italic" title="{{ package.lastSyncAt|date_time }} ({{ gmt_offset() }})">{{ package.lastSyncAt|date_time|time_diff }}</span>
-                            <div class="mt-1 max-h-40 overflow-auto rounded bg-slate-100 p-2 font-mono text-[0.7rem] break-all">
-                                {{ package.lastSyncError | nl2br }}
-                            </div>
-                        {% else %}
-                            {{ package.description|striptags }}
-                        {% endif %}
-                    </td>
-                    {% if is_granted('ROLE_ORGANIZATION_MEMBER', organization) %}
-                        <td data-label="Webhook" class="text-center">
-                            {% if package.webhookCreatedAt is not empty %}
-                                <span class="font-semibold" title="{{ package.webhookCreatedAt | date_time }} ({{ gmt_offset() }})">
-                                    created
-                                </span>
-                            {% else %}
-                                <small>N/A</small>
-                            {% endif %}
-                        </td>
-                        <td data-label="Security" class="text-center">
-                            {% if not package.isEnabledSecurityScan or package.isSynchronizedSuccessfully %}
-                                {% include 'component/scanBadge.html.twig' %}
-                            {% endif %}
-                        </td>
-                        <td class="text-right">
-                            {% include 'component/packageActions.html.twig' %}
-                        </td>
-                    {% endif %}
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="7" class="text-center">No packages found</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        {% else %}
+            <tr>
+                <td colspan="7">No packages found</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% include 'component/pagination.html.twig' with {'path_name': 'organization_packages', 'path_params': {'organization': organization.alias}} %}
 {% endblock %}

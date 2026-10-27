@@ -3,49 +3,47 @@
 {% block header %}Organizations{% endblock %}
 
 {% block content %}
-<div class="table-wrap">
-    <table class="table">
-        <thead>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Alias</th>
+            <th>Packages</th>
+            <th>Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for organization in organizations %}
             <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Alias</th>
-                <th>Packages</th>
-                <th>Options</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for organization in organizations %}
-                <tr>
-                    <td data-label="Id">{{ organization.id }}</td>
-                    <td data-label="Name">{{ organization.name }}</td>
-                    <td data-label="Alias">{{ organization.alias }}</td>
-                    <td data-label="Packages">{{ organization.packagesCount }}</td>
-                    <td>
+                <td data-label="Id" data-stack>{{ organization.id }}</td>
+                <td data-label="Name" data-card-title>{{ organization.name }}</td>
+                <td data-label="Alias">{{ organization.alias }}</td>
+                <td data-label="Packages">{{ organization.packagesCount }}</td>
+                <td>
+                    <button
+                        class="btn btn-danger btn-sm"
+                        type="button"
+                        data-confirm-action="{{ path('admin_organization_remove', {organization: organization.alias }) }}"
+                        data-confirm-method="DELETE"
+                    >
+                        Remove
+                    </button>
+                    {% if not app.user.isMemberOfOrganization(organization.alias) %}
                         <button
-                            class="btn btn-danger btn-sm"
+                            class="btn btn-warning btn-sm"
                             type="button"
-                            data-confirm-action="{{ path('admin_organization_remove', {organization: organization.alias }) }}"
-                            data-confirm-method="DELETE"
+                            data-confirm-action="{{ path('admin_organization_add_admin', {organization: organization.alias}) }}"
+                            data-confirm-method="POST"
                         >
-                            Remove
+                            Invite current user
                         </button>
-                        {% if not app.user.isMemberOfOrganization(organization.alias) %}
-                            <button
-                                class="btn btn-warning btn-sm"
-                                type="button"
-                                data-confirm-action="{{ path('admin_organization_add_admin', {organization: organization.alias}) }}"
-                                data-confirm-method="POST"
-                            >
-                                Invite current user
-                            </button>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% include 'component/pagination.html.twig' with {'path_name': 'admin_organization_list'} %}
 </div>
 {% endblock %}

@@ -314,10 +314,10 @@ If you wish to use your own certificate put key and certificate in:
 
 Otherwise self-sign certificate will be generated.
 
-To start all containers run:
+To build the image and start all containers run:
 
 ```bash
-docker-compose up
+docker compose up -d --build
 ```
 
 ## Support

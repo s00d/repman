@@ -1,50 +1,52 @@
 {# tokens, regenerate_route, remove_route, route_params (merged with {token: value}) #}
-<div class="table-wrap">
-    <table class="table">
-        <thead>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Created</th>
+            <th>Last used</th>
+            <th>Value</th>
+            <th>Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for token in tokens %}
+            {% set params = route_params|default({})|merge({token: token.value}) %}
             <tr>
-                <th>Name</th>
-                <th>Created</th>
-                <th>Last used</th>
-                <th>Value</th>
-                <th>Options</th>
+                <td data-label="Name" data-card-title>{{ token.name }}</td>
+                <td data-label="Created" class="whitespace-nowrap">
+                    <span title="{{ token.createdAt|date_time }} {{ gmt_offset() }}">
+                        {{ token.createdAt|date_time|time_diff }}
+                    </span>
+                </td>
+                <td data-label="Last used" class="whitespace-nowrap">
+                    <span title="{% if token.lastUsedAt %}{{ token.lastUsedAt|date_time }} {{ gmt_offset() }}{% endif %}">
+                        {{ token.lastUsedAt ? token.lastUsedAt|date_time|time_diff : 'never' }}
+                    </span>
+                </td>
+                <td data-label="Value" data-token-group data-stack>
+                    <button type="button" class="btn btn-primary btn-sm" data-reveal-token>
+                        Show token
+                    </button>
+                    <div data-token hidden>
+                        {% include 'component/copyInput.html.twig' with {id: 'token' ~ loop.index, value: token.value, label: 'Token ' ~ token.name} %}
+                    </div>
+                </td>
+                <td class="whitespace-nowrap">
+                    <button class="btn btn-warning btn-sm" type="button"
+                        data-confirm-action="{{ path(regenerate_route, params) }}" data-confirm-method="POST">
+                        Regenerate
+                    </button>
+                    <button class="btn btn-danger btn-sm" type="button"
+                        data-confirm-action="{{ path(remove_route, params) }}" data-confirm-method="DELETE">
+                        Remove
+                    </button>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            {% for token in tokens %}
-                {% set params = route_params|default({})|merge({token: token.value}) %}
-                <tr>
-                    <td data-label="Name">{{ token.name }}</td>
-                    <td data-label="Created" class="whitespace-nowrap">
-                        <span title="{{ token.createdAt|date_time }} {{ gmt_offset() }}">
-                            {{ token.createdAt|date_time|time_diff }}
-                        </span>
-                    </td>
-                    <td data-label="Last used" class="whitespace-nowrap">
-                        <span title="{% if token.lastUsedAt %}{{ token.lastUsedAt|date_time }} {{ gmt_offset() }}{% endif %}">
-                            {{ token.lastUsedAt ? token.lastUsedAt|date_time|time_diff : 'never' }}
-                        </span>
-                    </td>
-                    <td data-label="Value" class="md:min-w-72" data-token-group>
-                        <button type="button" class="btn btn-primary btn-sm" data-reveal-token>
-                            Show token
-                        </button>
-                        <div data-token hidden>
-                            {% include 'component/copyInput.html.twig' with {id: 'token' ~ loop.index, value: token.value, label: 'Token ' ~ token.name} %}
-                        </div>
-                    </td>
-                    <td class="whitespace-nowrap">
-                        <button class="btn btn-warning btn-sm" type="button"
-                            data-confirm-action="{{ path(regenerate_route, params) }}" data-confirm-method="POST">
-                            Regenerate
-                        </button>
-                        <button class="btn btn-danger btn-sm" type="button"
-                            data-confirm-action="{{ path(remove_route, params) }}" data-confirm-method="DELETE">
-                            Remove
-                        </button>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        {% else %}
+            <tr>
+                <td colspan="5">No tokens yet</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

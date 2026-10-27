@@ -162,66 +162,90 @@ nav[aria-label='Main'] > div {
         @apply bg-red-600 text-white;
     }
 
-    .table-wrap {
-        @apply relative -mx-4 px-4 sm:-mx-5 sm:px-5 md:max-lg:overflow-x-auto;
-    }
-
+    /*
+     * lists are table markup shown as cards: the data-card-title cell is the header, cells with a
+     * data-label are "label: value" lines (data-stack puts long values under their label) and the
+     * last unlabelled cell (actions, a require command) is the footer; wide screens get a grid
+     */
     .table {
-        @apply w-full border-collapse text-left;
+        @apply block w-full text-left;
 
-        & th {
-            @apply border-b border-slate-200 px-3 py-2 text-xs font-semibold tracking-wide whitespace-nowrap text-slate-500 uppercase;
+        & thead {
+            @apply hidden;
+        }
+
+        & tbody {
+            @apply grid gap-4 md:grid-cols-2 xl:grid-cols-3;
+        }
+
+        & tr {
+            @apply flex min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md;
         }
 
         & td {
-            @apply border-b border-slate-100 px-3 py-2 align-top;
+            @apply block min-w-0 border-t border-slate-100 px-4 py-2 text-left! break-words;
         }
 
-        & tbody tr:hover {
-            @apply bg-slate-50;
-        }
+        & td[data-card-title] {
+            @apply order-first border-t-0 bg-slate-50 py-3 text-base font-semibold text-slate-900;
 
-        /* phones: every row becomes a card, each cell labelled with its data-label */
-        @media (width < 48rem) {
-            & thead {
+            &::before {
                 @apply hidden;
             }
 
-            & tbody,
-            & tr,
-            & td {
-                @apply block;
+            & .text-xs {
+                @apply font-normal;
             }
+        }
 
-            & tr {
-                @apply border-b border-slate-200 py-2;
-            }
+        /* an empty list: one cell spanning the row */
+        & tr:has(> td[colspan]) {
+            @apply col-span-full border-dashed shadow-none hover:shadow-none;
+        }
 
-            & tbody tr:hover {
-                @apply bg-transparent;
-            }
+        & td[colspan] {
+            @apply border-t-0 py-6 text-center! text-slate-500;
+        }
 
-            & td {
-                @apply block min-w-0 border-0 px-0 py-1 text-left! break-words;
-            }
+        & td[data-label]:not([data-card-title], [data-stack]) {
+            @apply flex items-baseline justify-between gap-4 text-right!;
+        }
 
-            & td[data-label] {
-                @apply flex items-start gap-3;
-            }
+        & td[data-label]::before {
+            @apply shrink-0 font-sans text-sm text-slate-500;
+            content: attr(data-label);
+        }
 
-            & td > div,
-            & td > form {
+        & td[data-stack]::before {
+            @apply mb-1 block text-xs font-medium tracking-wide uppercase;
+        }
+
+        & td:last-child:not([data-label], [data-card-title], [colspan]) {
+            @apply mt-auto flex flex-wrap items-center justify-end gap-2 bg-slate-50 py-2.5;
+
+            & > .input-group {
                 @apply min-w-0 flex-1;
             }
+        }
 
-            & td[data-label]::before {
-                @apply w-24 shrink-0 pt-0.5 text-xs font-semibold tracking-wide text-slate-500 uppercase;
-                content: attr(data-label);
-            }
+        & td[data-label] > .input-group {
+            @apply min-w-0 flex-1;
+        }
 
-            & td:empty {
-                @apply hidden;
-            }
+        & td:empty {
+            @apply hidden!;
+        }
+    }
+
+    .sort-link {
+        @apply inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-600 no-underline hover:border-slate-300 hover:text-slate-900 hover:no-underline;
+
+        &.active {
+            @apply border-brand-100 bg-brand-50 text-brand-700;
+        }
+
+        & svg {
+            @apply size-4;
         }
     }
 

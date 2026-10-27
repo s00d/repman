@@ -1,8 +1,9 @@
 x-restart-policy: &restart_policy
   restart: unless-stopped
 
-# app, consumer and cron run the same image, built from this checkout. To use a published image
-# instead, set REPMAN_IMAGE (e.g. buddy/repman:1.5.0) and run `docker compose up --no-build`.
+# app, consumer and cron run the same image, built from this checkout. To run an image built
+# elsewhere, set REPMAN_IMAGE (e.g. registry.example.com/repman:latest) and run `docker compose up --no-build`.
+# The buddy/repman images on Docker Hub are older upstream releases, not this code.
 x-repman-image: &repman_image
   image: ${REPMAN_IMAGE:-repman:local}
   build: .

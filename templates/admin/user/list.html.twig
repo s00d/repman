@@ -3,51 +3,49 @@
 {% block header %}Users{% endblock %}
 
 {% block content %}
-<div class="table-wrap">
-    <table class="table">
-        <thead>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>E-mail</th>
+            <th>Roles</th>
+            <th>Status</th>
+            <th>Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
             <tr>
-                <th>ID</th>
-                <th>E-mail</th>
-                <th>Roles</th>
-                <th>Status</th>
-                <th>Options</th>
+                <td data-label="ID" data-stack>{{ user.id }}</td>
+                <td data-label="E-mail" data-card-title>{{ user.email }}</td>
+                <td data-label="Roles">{{ user.roles | join(', ') }}</td>
+                <td data-label="Status">{{ user.status }}</td>
+                <td>
+                    {% if user.status == 'enabled' %}
+                        <button
+                            class="btn btn-danger btn-sm"
+                            type="button"
+                            data-confirm-action="{{ path('admin_user_disable', {user: user.id }) }}"
+                            data-confirm-method="POST"
+                        >
+                            Disable
+                        </button>
+                    {% elseif user.status == 'disabled' %}
+                        <button
+                            class="btn btn-success btn-sm"
+                            type="button"
+                            data-confirm-action="{{ path('admin_user_enable', {user: user.id }) }}"
+                            data-confirm-method="POST"
+                        >
+                            Enable
+                        </button>
+                    {% endif %}
+                    <a href="{{ path('admin_user_roles', {user: user.id}) }}" class="btn btn-warning btn-sm">Change roles</a>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-                <tr>
-                    <td data-label="ID">{{ user.id }}</td>
-                    <td data-label="E-mail">{{ user.email }}</td>
-                    <td data-label="Roles">{{ user.roles | join(', ') }}</td>
-                    <td data-label="Status">{{ user.status }}</td>
-                    <td>
-                        {% if user.status == 'enabled' %}
-                            <button
-                                class="btn btn-danger btn-sm"
-                                type="button"
-                                data-confirm-action="{{ path('admin_user_disable', {user: user.id }) }}"
-                                data-confirm-method="POST"
-                            >
-                                Disable
-                            </button>
-                        {% elseif user.status == 'disabled' %}
-                            <button
-                                class="btn btn-success btn-sm"
-                                type="button"
-                                data-confirm-action="{{ path('admin_user_enable', {user: user.id }) }}"
-                                data-confirm-method="POST"
-                            >
-                                Enable
-                            </button>
-                        {% endif %}
-                        <a href="{{ path('admin_user_roles', {user: user.id}) }}" class="btn btn-warning btn-sm">Change roles</a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        {% endfor %}
+    </tbody>
+</table>
 {% include 'component/pagination.html.twig' with {'path_name': 'admin_user_list'} %}
 </div>
 {% endblock %}

@@ -810,7 +810,7 @@ final class OrganizationControllerTest extends FunctionalTestCase
             'package' => $packageId,
         ]));
 
-        self::assertStringContainsString('package not scanned yet', $this->lastResponseBody());
+        self::assertStringContainsString('Package not scanned yet', $this->lastResponseBody());
     }
 
     public function testScanPackages(): void

@@ -16,42 +16,40 @@
 
 {% block content %}
 
-<div class="table-wrap">
-    <table class="table">
-        <thead>
+<table class="table">
+    <thead>
+        <tr>
+            <th>E-mail</th>
+            <th>Role</th>
+            {% if is_granted('ROLE_ORGANIZATION_OWNER', organization) %}
+                <th>Options</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for member in members %}
             <tr>
-                <th>E-mail</th>
-                <th>Role</th>
+                <td data-label="E-mail" data-card-title>{{ member.email }}</td>
+                <td data-label="Role">{{ member.role }}</td>
                 {% if is_granted('ROLE_ORGANIZATION_OWNER', organization) %}
-                    <th>Options</th>
+                    <td>
+                        <a class="btn btn-warning btn-sm" href="{{ path('organization_change_member_role', {organization: organization.alias, member: member.userId}) }}">
+                            Change role
+                        </a>
+                        <button
+                                class="btn btn-danger btn-sm"
+                                type="button"
+                                data-confirm-action="{{ path('organization_remove_member', {organization: organization.alias, member: member.userId}) }}"
+                                data-confirm-method="DELETE"
+                        >
+                            Remove
+                        </button>
+                    </td>
                 {% endif %}
             </tr>
-        </thead>
-        <tbody>
-            {% for member in members %}
-                <tr>
-                    <td data-label="E-mail">{{ member.email }}</td>
-                    <td data-label="Role">{{ member.role }}</td>
-                    {% if is_granted('ROLE_ORGANIZATION_OWNER', organization) %}
-                        <td>
-                            <a class="btn btn-warning btn-sm" href="{{ path('organization_change_member_role', {organization: organization.alias, member: member.userId}) }}">
-                                Change role
-                            </a>
-                            <button
-                                    class="btn btn-danger btn-sm"
-                                    type="button"
-                                    data-confirm-action="{{ path('organization_remove_member', {organization: organization.alias, member: member.userId}) }}"
-                                    data-confirm-method="DELETE"
-                            >
-                                Remove
-                            </button>
-                        </td>
-                    {% endif %}
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        {% endfor %}
+    </tbody>
+</table>
 {% include 'component/pagination.html.twig' with {'path_name': 'organization_members', 'path_params': {'organization': organization.alias}} %}
 </div>
 {% endblock %}

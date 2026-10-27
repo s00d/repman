@@ -84,36 +84,34 @@
                 {% include 'svg/refresh.svg' %} Sync now
             </button>
         {% else %}
-            <div class="table-wrap">
-                <table class="table">
-                    <thead>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Version</th>
+                    <th>Released</th>
+                    <th>Reference</th>
+                    <th>Size</th>
+                    <th><span class="sr-only">Require command</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for version in versions %}
                     <tr>
-                        <th>Version</th>
-                        <th>Released</th>
-                        <th>Reference</th>
-                        <th>Size</th>
-                        <th><span class="sr-only">Require command</span></th>
+                        <td data-label="Version" data-card-title>{{ version.version }}</td>
+                        <td data-label="Released" class="whitespace-nowrap">
+                            <span title="{{ version.date|date_time_utc }} ({{ gmt_offset() }})">
+                                {{ version.date|date_time_utc|time_diff }}
+                            </span>
+                        </td>
+                        <td data-label="Reference" class="font-mono text-xs break-all" data-stack>{{ version.reference }}</td>
+                        <td data-label="Size" class="whitespace-nowrap">{% if version.size > 0 %}{{ version.size | format_bytes }}{% else %}<span class="text-slate-500" title="No archive, Composer installs this version from the repository">source</span>{% endif %}</td>
+                        <td>
+                            {% include 'component/copyInput.html.twig' with {id: 'version-' ~ loop.index, value: 'composer require ' ~ package.name ~ ':' ~ version.version, label: 'Composer require command for ' ~ version.version} %}
+                        </td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    {% for version in versions %}
-                        <tr>
-                            <td data-label="Version">{{ version.version }}</td>
-                            <td data-label="Released" class="whitespace-nowrap">
-                                <span title="{{ version.date|date_time_utc }} ({{ gmt_offset() }})">
-                                    {{ version.date|date_time_utc|time_diff }}
-                                </span>
-                            </td>
-                            <td data-label="Reference" class="font-mono text-xs break-all">{{ version.reference }}</td>
-                            <td data-label="Size" class="whitespace-nowrap">{% if version.size > 0 %}{{ version.size | format_bytes }}{% else %}<span class="text-slate-500" title="No archive, Composer installs this version from the repository">source</span>{% endif %}</td>
-                            <td class="md:min-w-72">
-                                {% include 'component/copyInput.html.twig' with {id: 'version-' ~ loop.index, value: 'composer require ' ~ package.name ~ ':' ~ version.version, label: 'Composer require command for ' ~ version.version} %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                {% endfor %}
+                </tbody>
+            </table>
             {% include 'component/pagination.html.twig' with {'path_name': 'organization_package_details', 'path_params': {'organization': organization.alias, 'package': package.id}} %}
         {% endif %}
     {% else %}

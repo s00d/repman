@@ -25,6 +25,8 @@ On next release:
 - New frontend: Vite, Tailwind CSS 4 and TypeScript, without jQuery, Bootstrap JS, bootstrap-select and Tabler;
   native `<dialog>` confirmations, a searchable Vue combobox for long selects, Chart.js charts (ApexCharts is no longer
   free for every company), an own form theme; building it needs Node.js (the Docker image does it)
+- Lists (packages, versions, tokens, members, admin) are cards on every screen size, a grid on wide screens; packages
+  are sorted with buttons above the list
 
 ### Fixed
 - Prefer the VCS tag/branch name over a hardcoded `version` in composer.json when syncing (tags were silently skipped: the sync looked successful but the release never appeared, [#715](https://github.com/repman-io/repman/pull/715))
