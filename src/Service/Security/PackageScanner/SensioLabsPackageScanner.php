@@ -200,14 +200,19 @@ final class SensioLabsPackageScanner implements PackageScanner
             throw new \RuntimeException("Error while opening ZIP file '$distFilename', code: $result");
         }
 
-        $lockFiles = [];
+        $names = [];
         for ($i = 0; $i < $zip->numFiles; ++$i) {
-            $filename = (string) $zip->getNameIndex($i);
-            if (\preg_match('/\/composer.lock$/', $filename) === 1) {
-                $lockFileContent = $zip->getFromIndex($i);
-                $trimmed = \explode('/', $filename);
-                \array_shift($trimmed);
-                $lockFiles['/'.\implode('/', $trimmed)] = (string) $lockFileContent;
+            $names[$i] = (string) $zip->getNameIndex($i);
+        }
+
+        // archives of GitHub, GitLab and Bitbucket wrap everything in one directory, artifacts usually do not
+        $first = \strstr($names[0] ?? '', '/', true);
+        $root = $first !== false && \array_filter($names, fn (string $name): bool => !\str_starts_with($name, $first.'/')) === [] ? $first.'/' : '';
+
+        $lockFiles = [];
+        foreach ($names as $i => $filename) {
+            if (\preg_match('{(^|/)composer\.lock$}', $filename) === 1) {
+                $lockFiles['/'.\substr($filename, \strlen($root))] = (string) $zip->getFromIndex($i);
             }
         }
 
