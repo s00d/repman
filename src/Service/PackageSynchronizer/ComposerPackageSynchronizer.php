@@ -127,7 +127,8 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                     'version' => $p->getVersion(),
                     'ref' => $p->getDistReference() ?? $p->getDistSha1Checksum() ?? $p->getSourceReference() ?? '',
                     'distType' => $p->getDistType() ?? 'zip',
-                    'distUrl' => $p->getDistUrl(),
+                    // a path dist is a directory on this server, not an archive anybody could download
+                    'distUrl' => $p->getDistType() === 'path' ? null : $p->getDistUrl(),
                     'releaseDate' => \DateTimeImmutable::createFromInterface($p->getReleaseDate() ?? new \DateTimeImmutable()),
                     'stability' => $p->getStability(),
                     'defaultBranch' => $p->isDefaultBranch(),

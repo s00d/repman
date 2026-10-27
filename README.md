@@ -314,12 +314,32 @@ STORAGE_AWS_PATH_STYLE_ENDPOINT=true
 - Override with `docker-compose.override.yml` if needed.
 - Set your domain (`APP_HOST`) and other settings in `.env.docker.local`, it overrides `.env.docker`.
 
-If you wish to use your own certificate put key and certificate in:
+### HTTPS and Let's Encrypt
 
-- `docker/nginx/ssl/private/server.key`
-- `docker/nginx/ssl/certs/server.crt`
+The web server is [Caddy](https://caddyserver.com) (the compose service is still called `nginx`). Repman
+answers on several host names: the app (`APP_HOST`), the Packagist proxy (`repo.APP_HOST`) and one host per
+organization (`acme.repo.APP_HOST`, a level deeper, or `acme-repo.APP_HOST` with
+`APP_ORGANIZATION_SEPARATOR=-`). A single wildcard does not cover the organizations, and they come and go
+with the database, so Caddy gets one certificate per name, the first time the name is asked for, after
+asking Repman whether it serves it. Nothing gets a certificate for a name that is not the app, the proxy or
+an existing organization.
 
-Otherwise self-sign certificate will be generated.
+Caddy picks one of three modes on start:
+
+- **Let's Encrypt** when `ACME_EMAIL` is set in `.env.docker.local`. DNS for `APP_HOST`, `repo.APP_HOST` and
+  the organizations has to point at the server (a wildcard record `*.repo.APP_HOST` does it) and port 443
+  has to be reachable from the internet. Certificates are renewed in the background and kept in the
+  `caddy-data` volume. Try it against the staging CA first with
+  `ACME_CA=https://acme-staging-v02.api.letsencrypt.org/directory`.
+- **Your own certificate** when `docker/nginx/ssl/certs/server.crt` and `docker/nginx/ssl/private/server.key`
+  exist. It has to cover all the names above (e.g. `APP_HOST`, `*.APP_HOST`, `*.repo.APP_HOST`).
+- **Caddy's local CA** otherwise, for installs on `localhost` or an internal name: browsers and Composer
+  warn until its root certificate (`docker compose exec nginx cat /data/caddy/pki/authorities/local/root.crt`)
+  is trusted.
+
+Only port 443 is published. Plain http is redirected to https; publish port 80 in a
+`docker-compose.override.yml` to get that redirect (`ports: ['80:80', '443:443', '443:443/udp']`).
+`APP_URL_SCHEME=http` serves plain http instead of redirecting it.
 
 To build the image and start all containers run:
 
