@@ -16,6 +16,8 @@ On next release:
 - Escape raw HTML in package READMEs (rendered unescaped on the package page)
 - Do not let shared caches store repository authentication failures ([#613](https://github.com/repman-io/repman/issues/613))
 - Docker: PHP 8.4, nginx 1.30, TLS 1.3, containers run as `www-data`, SSH accepts new host keys but refuses changed ones
+- Docker: the build refuses PHP older than 8.4.27 (PHP2Shell, CVE-2026-109618 and CVE-2026-109619, remote code
+  execution exploited in the wild) and turns session upload progress off (CVE-2026-115560, no fix yet)
 
 ### Changed
 - Require PHP 8.4; Symfony 6.4 LTS, Doctrine ORM 3, Composer 2, Flysystem 3, CommonMark 2, PHPUnit 11, PHPStan 2

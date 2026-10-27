@@ -31,6 +31,13 @@ RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
 # set memory limit
 RUN echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini
 
+# PHP2Shell (CVE-2026-109618, CVE-2026-109619): remote code execution, exploited in the wild, fixed in
+# 8.4.27; a cached base image is older until it is pulled again. Session upload progress, which Repman
+# does not use, is off as PHP advises against CVE-2026-115560, which has no fix yet.
+RUN php -r 'exit(version_compare(PHP_VERSION, "8.4.27", "<") ? 1 : 0);' || \
+    { echo "PHP $(php -r 'echo PHP_VERSION;') has known remote code execution flaws: build with docker compose build --pull"; exit 1; }
+RUN echo "session.upload_progress.enabled=0" > /usr/local/etc/php/conf.d/session-upload-progress.ini
+
 # hide X-Powered-By in reponse header
 RUN echo "expose_php=off" > /usr/local/etc/php/conf.d/expose.ini
 
