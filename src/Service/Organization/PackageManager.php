@@ -143,15 +143,36 @@ class PackageManager
 
     /**
      * The composer.lock of a version installed from source (no dist archive), kept next to the dists
-     * as <version>_<ref>.lock for the security scan; null drops the stored ones of that version.
+     * as <version>_<ref>.lock for the security scan.
      */
-    public function saveSourceLock(string $organizationAlias, string $packageName, string $version, string $ref, ?string $content): void
+    public function saveSourceLock(string $organizationAlias, string $packageName, string $version, string $ref, string $content): void
     {
-        if ($content !== null) {
-            $this->repoFilesystem->write($this->sourceLockFilename($organizationAlias, $packageName, $version, $ref), $content);
+        $this->repoFilesystem->write($this->sourceLockFilename($organizationAlias, $packageName, $version, $ref), $content);
+    }
+
+    /**
+     * Removes the kept lock files of every other version and reference: only the versions the scan
+     * reads need one, and the latest release moves on.
+     *
+     * @param array<string,string> $refsByVersion
+     */
+    public function keepOnlySourceLocks(string $organizationAlias, string $packageName, array $refsByVersion): void
+    {
+        $distDir = $organizationAlias.'/dist/'.$packageName;
+        if (!$this->repoFilesystem->directoryExists($distDir)) {
+            return;
         }
 
-        $this->removeVersionDists($organizationAlias, $packageName, $version, 'lock', $content !== null ? $ref : '');
+        $keep = [];
+        foreach ($refsByVersion as $version => $ref) {
+            $keep[$this->sourceLockFilename($organizationAlias, $packageName, $version, $ref)] = true;
+        }
+
+        foreach ($this->repoFilesystem->listContents($distDir) as $file) {
+            if ($file->isFile() && \str_ends_with($file->path(), '.lock') && !isset($keep[$file->path()])) {
+                $this->removeFile($file->path());
+            }
+        }
     }
 
     public function sourceLock(string $organizationAlias, string $packageName, string $version, string $ref): ?string

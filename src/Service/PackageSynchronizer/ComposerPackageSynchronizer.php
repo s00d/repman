@@ -138,6 +138,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
 
             $encounteredVersions = [];
             $encounteredLinks = [];
+            $sourceLocks = [];
             foreach ($versions as $version) {
                 $dist = new Dist(
                     $version['organizationAlias'],
@@ -220,12 +221,15 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
 
                 // the security scan reads composer.lock from the dist, a version installed from source has
                 // none: keep the lock of the versions it scans (the latest release, the default branch)
-                if ($version['distUrl'] === null && ($latest->getVersion() === $version['version'] || $version['defaultBranch'])) {
-                    $this->saveSourceLock($repository, $package, $version['packageName'], $version['version'], $version['ref']);
+                if ($version['distUrl'] === null && ($latest->getVersion() === $version['version'] || $version['defaultBranch'])
+                    && $this->saveSourceLock($repository, $package, $version['packageName'], $version['version'], $version['ref'])) {
+                    $sourceLocks[$version['version']] = $version['ref'];
                 }
 
                 $encounteredVersions[$version['prettyVersion']] = true;
             }
+
+            $this->packageManager->keepOnlySourceLocks($package->organizationAlias(), $name, $sourceLocks);
 
             $package->syncSuccess(
                 $name,
@@ -300,10 +304,10 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
      * Read through the VCS driver, which works on the mirror Composer cloned for this sync and with its
      * credentials: the scan itself may run where neither is available (repman:security:scan-all in cron).
      */
-    private function saveSourceLock(RepositoryInterface $repository, Package $package, string $name, string $version, string $ref): void
+    private function saveSourceLock(RepositoryInterface $repository, Package $package, string $name, string $version, string $ref): bool
     {
         if (!$repository instanceof VcsRepository || $ref === '') {
-            return;
+            return false;
         }
 
         try {
@@ -313,7 +317,12 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
             $lock = null;
         }
 
+        if ($lock === null) {
+            return false;
+        }
         $this->packageManager->saveSourceLock($package->organizationAlias(), $name, $version, $ref, $lock);
+
+        return true;
     }
 
     private function createRepository(Package $package, IOInterface $io): RepositoryInterface
