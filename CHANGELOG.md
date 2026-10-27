@@ -58,6 +58,9 @@ On next release:
 - The Buddy button on the registration page appeared only when Bitbucket was enabled
 - Docker on Linux: `assets:install` could not write the bind mounted `public/` as `www-data`
 - Docker: the database logged nothing, so a failing database restarted without a trace
+- Security scans skipped packages installed from source (plain git over SSH, Mercurial, Subversion): they have no
+  archive to read composer.lock from; the sync now keeps the committed lock of the scanned versions
+- Artifact packages were never scanned (composer.lock at the archive root was not found)
 - Searching packages dropped the chosen sort order; menus at the bottom of a page opened off screen
 
 ### Removed

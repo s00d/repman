@@ -24,6 +24,7 @@ use Composer\Package\CompletePackage;
 use Composer\Package\PackageInterface;
 use Composer\Repository\RepositoryFactory;
 use Composer\Repository\RepositoryInterface;
+use Composer\Repository\VcsRepository;
 use Composer\Semver\Comparator;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -131,6 +132,7 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                     'distUrl' => $p->getDistUrl(),
                     'releaseDate' => \DateTimeImmutable::createFromInterface($p->getReleaseDate() ?? new \DateTimeImmutable()),
                     'stability' => $p->getStability(),
+                    'defaultBranch' => $p->isDefaultBranch(),
                 ];
             }
 
@@ -218,6 +220,12 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
                     )
                 );
 
+                // the security scan reads composer.lock from the dist, a version installed from source has
+                // none: keep the lock of the versions it scans (the latest release, the default branch)
+                if ($version['distUrl'] === null && ($latest->getVersion() === $version['version'] || $version['defaultBranch'])) {
+                    $this->saveSourceLock($repository, $package, $version['packageName'], $version['version'], $version['ref']);
+                }
+
                 $encounteredVersions[$version['prettyVersion']] = true;
             }
 
@@ -288,6 +296,26 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
     private function accessToken(Package $package): string
     {
         return $package->oauthToken()->accessToken($this->tokenRefresher);
+    }
+
+    /**
+     * Read through the VCS driver, which works on the mirror Composer cloned for this sync and with its
+     * credentials: the scan itself may run where neither is available (repman:security:scan-all in cron).
+     */
+    private function saveSourceLock(RepositoryInterface $repository, Package $package, string $name, string $version, string $ref): void
+    {
+        if (!$repository instanceof VcsRepository || $ref === '') {
+            return;
+        }
+
+        try {
+            $lock = $repository->getDriver()?->getFileContent('composer.lock', $ref);
+        } catch (\RuntimeException) {
+            // Mercurial and Subversion answer a missing file with an error
+            $lock = null;
+        }
+
+        $this->packageManager->saveSourceLock($package->organizationAlias(), $name, $version, $ref, $lock);
     }
 
     private function createRepository(Package $package, IOInterface $io): RepositoryInterface

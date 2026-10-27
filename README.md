@@ -55,7 +55,9 @@ the key must belong to the container's `www-data` (uid 82): `sudo chown -R 82:82
 Then add the package as *Git* with an SSH URL such as `git@git.example.com:team/package.git`. Hosts are
 trusted on first contact and refused if their key changes later; with the read-only mount ssh cannot
 record them and prints a warning, which `known_hosts` avoids. Such repositories have no archives, so
-Composer installs them from source and developers need access to the repository too.
+Composer installs them from source and developers need access to the repository too. The security scan
+checks the `composer.lock` committed in the repository: the sync keeps it for the latest release and the
+default branch, so packages synchronized before this release need one more synchronization.
 
 #### Upgrading a Docker installation
 
