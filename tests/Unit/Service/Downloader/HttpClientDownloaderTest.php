@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Buddy\Repman\Tests\Unit\Service\Downloader;
 
-use Buddy\Repman\Service\Downloader\ReactDownloader;
+use Buddy\Repman\Service\Downloader\HttpClientDownloader;
 use Munus\Control\Option;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
@@ -13,7 +13,7 @@ use Symfony\Component\Process\Process;
 /**
  * Runs against a local `php -S` server, so it neither needs the network nor depends on a remote site.
  */
-final class ReactDownloaderTest extends TestCase
+final class HttpClientDownloaderTest extends TestCase
 {
     private static Process $server;
     private static string $baseUrl;
@@ -72,12 +72,12 @@ final class ReactDownloaderTest extends TestCase
     {
         $packages = __DIR__.'/../../../Resources/packages.json';
 
-        self::assertIsResource((new ReactDownloader())->getContents($packages)->getOrNull());
+        self::assertIsResource((new HttpClientDownloader())->getContents($packages)->getOrNull());
     }
 
     public function testDownloadOverHttp(): void
     {
-        $stream = (new ReactDownloader())->getContents(self::$baseUrl.'/ok')->getOrNull();
+        $stream = (new HttpClientDownloader())->getContents(self::$baseUrl.'/ok')->getOrNull();
 
         self::assertIsResource($stream);
         self::assertSame('{"ok":true}', stream_get_contents($stream));
@@ -86,7 +86,7 @@ final class ReactDownloaderTest extends TestCase
     public function testFailedDownload(): void
     {
         self::assertTrue(Option::none()->equals(
-            (new ReactDownloader())->getContents('/tmp/not-exists')
+            (new HttpClientDownloader())->getContents('/tmp/not-exists')
         ));
     }
 
@@ -94,25 +94,25 @@ final class ReactDownloaderTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        (new ReactDownloader())->getContents(self::$baseUrl.'/missing', [], function (): void {throw new \LogicException('Not found'); });
+        (new HttpClientDownloader())->getContents(self::$baseUrl.'/missing', [], function (): void {throw new \LogicException('Not found'); });
     }
 
     public function testNotFoundHandlerAfterRedirect(): void
     {
         $this->expectException(\LogicException::class);
 
-        (new ReactDownloader())->getContents(self::$baseUrl.'/redirect-to-missing', [], function (): void {throw new \LogicException('Not found'); });
+        (new HttpClientDownloader())->getContents(self::$baseUrl.'/redirect-to-missing', [], function (): void {throw new \LogicException('Not found'); });
     }
 
     public function testClientErrorIsNotRetried(): void
     {
-        self::assertTrue((new ReactDownloader())->getContents(self::$baseUrl.'/forbidden')->isEmpty());
+        self::assertTrue((new HttpClientDownloader())->getContents(self::$baseUrl.'/forbidden')->isEmpty());
         self::assertSame('1', file_get_contents(self::$stateDir.'/hits-forbidden'));
     }
 
     public function testRateLimitIsRetried(): void
     {
-        $stream = (new ReactDownloader())->getContents(self::$baseUrl.'/rate-limited-once')->getOrNull();
+        $stream = (new HttpClientDownloader())->getContents(self::$baseUrl.'/rate-limited-once')->getOrNull();
 
         self::assertIsResource($stream);
         self::assertSame('second time lucky', stream_get_contents($stream));
@@ -122,7 +122,7 @@ final class ReactDownloaderTest extends TestCase
     public function testLastModified(): void
     {
         $timestamps = [];
-        $downloader = new ReactDownloader();
+        $downloader = new HttpClientDownloader();
         $downloader->getLastModified(self::$baseUrl.'/ok', function (int $timestamp) use (&$timestamps): void {
             $timestamps[] = $timestamp;
         });
@@ -137,7 +137,7 @@ final class ReactDownloaderTest extends TestCase
     public function testAsyncContent(): void
     {
         $contents = [];
-        $downloader = new ReactDownloader();
+        $downloader = new HttpClientDownloader();
         $downloader->getAsyncContents(self::$baseUrl.'/ok', [], function ($stream, string $lastModified) use (&$contents): void {
             $contents[] = stream_get_contents($stream);
             $contents[] = $lastModified;

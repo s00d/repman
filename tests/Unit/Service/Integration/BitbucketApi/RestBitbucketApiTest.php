@@ -6,13 +6,13 @@ namespace Buddy\Repman\Tests\Unit\Service\Integration\BitbucketApi;
 
 use Bitbucket\Api\AbstractApi;
 use Bitbucket\Api\CurrentUser;
+use Bitbucket\Api\CurrentUser\Workspaces as CurrentUserWorkspaces;
 use Bitbucket\Api\Repositories as RepositoriesApi;
 use Bitbucket\Client;
 use Bitbucket\ResultPagerInterface;
 use Buddy\Repman\Service\Integration\BitbucketApi\Repositories;
 use Buddy\Repman\Service\Integration\BitbucketApi\Repository;
 use Buddy\Repman\Service\Integration\BitbucketApi\RestBitbucketApi;
-use Buddy\Repman\Service\Integration\BitbucketApi\UserWorkspaces;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -102,7 +102,7 @@ final class RestBitbucketApiTest extends TestCase
 
         $this->pagerMock->method('fetchAll')->willReturnCallback(
             function (AbstractApi $api, string $method, array $parameters = []) use ($workspaceApis, $workspaceListing): array {
-                if ($api instanceof UserWorkspaces) {
+                if ($api instanceof CurrentUserWorkspaces) {
                     // unfiltered: a role filter here would drop workspaces whose
                     // repositories are still reachable
                     self::assertSame([], $parameters);

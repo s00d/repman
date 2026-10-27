@@ -28,9 +28,8 @@ return (new Configuration())
         'symfony/monolog-bundle',
         'symfony/security-bundle',
         'symfony/twig-bundle',
+        'symfony/yaml',
     ], [ErrorType::UNUSED_DEPENDENCY])
     ->ignoreErrorsOnExtensions(['ext-ctype', 'ext-curl', 'ext-iconv', 'ext-pdo_pgsql'], [ErrorType::UNUSED_DEPENDENCY])
-    // the http_client service; code depends on symfony/http-client-contracts only
-    ->ignoreErrorsOnPackage('symfony/http-client', [ErrorType::PROD_DEPENDENCY_ONLY_IN_DEV])
     // fixtures are only loaded in dev and test
     ->ignoreErrorsOnPath(__DIR__.'/src/DataFixtures', [ErrorType::DEV_DEPENDENCY_IN_PROD]);

@@ -26,6 +26,12 @@ On next release:
   app waits for the database, consumer and cron for the migrations; own settings live in `.env.docker.local`
 - `COMPOSER_AUTH` (e.g. a GitHub token against the API rate limit) is used when packages are synchronized
 - Update front-end libraries (jQuery 3.7, Bootstrap 4.6, ApexCharts 3.54) with SRI
+- Security scans use Packagist's security advisories API (GitHub Advisory Database plus FriendsOfPHP) instead of a
+  git clone of FriendsOfPHP alone, which missed most advisories (e.g. 2 of 18 for league/commonmark)
+- Downloads go through Symfony HttpClient (retries, redirects, concurrency) instead of ReactPHP and own retry code;
+  clue/mq-react and react/* are no longer dependencies
+- Bitbucket workspaces are listed through bitbucket/client instead of an own endpoint class; GitLab projects are
+  fetched once instead of twice (owned projects are part of the membership listing)
 
 ### Fixed
 - `repman:proxy:sync-metadata` never refreshed anything ([#328](https://github.com/repman-io/repman/issues/328))
