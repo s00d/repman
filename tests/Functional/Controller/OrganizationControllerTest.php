@@ -578,6 +578,25 @@ final class OrganizationControllerTest extends FunctionalTestCase
         self::assertStringContainsString('{"x":"'.date('Y-m-d').'","y":3}', $this->lastResponseBody());
     }
 
+    public function testPackageStatsNameVersionsAsThePackageDoes(): void
+    {
+        $buddyId = $this->fixtures->createOrganization('buddy', $this->userId);
+        $packageId = $this->fixtures->addPackage($buddyId, 'https://buddy.com');
+        $this->fixtures->syncPackageWithData($packageId, 'buddy-works/buddy', 'Test', 'v1.2.3', new \DateTimeImmutable(), [
+            new Version(Uuid::uuid4(), 'v1.2.3', 'someref', 1234, new \DateTimeImmutable(), Version::STABILITY_STABLE),
+        ]);
+        // downloads carry the normalized version of the dist URL
+        $this->fixtures->addPackageDownload(1, $packageId, '1.2.3.0');
+
+        $this->client->request('GET', $this->urlTo('organization_package_stats', [
+            'organization' => 'buddy',
+            'package' => $packageId,
+        ]));
+
+        self::assertTrue($this->client->getResponse()->isOk());
+        self::assertStringContainsString('/stats/1.2.3.0?days=30">v1.2.3</a>', $this->lastResponseBody());
+    }
+
     public function testPackageStatsOfABranchVersionWithASlash(): void
     {
         $buddyId = $this->fixtures->createOrganization('version-tracking', $this->userId);

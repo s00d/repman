@@ -57,9 +57,10 @@ Composer installs them from source and developers need access to the repository 
 
 #### Upgrading a Docker installation
 
-These steps were tested by upgrading a `buddy/repman:1.3.4` installation with organizations,
-packages, tokens, members and download statistics; all data was kept. See [UPGRADE.md](UPGRADE.md)
-for what changed.
+Run these steps in the checkout your installation runs from. They were tested by upgrading the 1.4.0 release
+(its PostgreSQL 11 database is upgraded in place) and a `master` checkout with organizations, packages,
+tokens, invitations and download statistics: all data was kept, packages were added and installed
+afterwards. See [UPGRADE.md](UPGRADE.md) for what changed.
 
 1. Back up the database and `var/` (packages, proxy cache, logs) while the old version runs:
 
@@ -74,17 +75,30 @@ for what changed.
    docker compose down
    ```
 
-3. Update the checkout (`git pull`, or check out the release tag). Keep your `.env.docker`; if it
-   lists `pear` in `APP_ALLOWED_PACKAGE_TYPES`, remove it (Composer 2 dropped PEAR). `GA_TRACKING`
-   is no longer used.
+3. Get the new code. Your own settings go to `.env.docker.local`, which git ignores and which wins
+   over the defaults in `.env.docker`, so later updates never conflict with them:
 
-4. Build and start the new version. On start the app hands `var/` to `www-data`, rebuilds the cache
-   and runs the database migrations:
+   ```bash
+   git diff -U0 -- .env.docker | grep '^+[A-Z]' | cut -c2- >> .env.docker.local   # only the values you changed
+   git stash                       # parks your edits of tracked files; git stash show -p lists them
+   git pull                        # or check out the release tag
+   ```
+
+   Check `.env.docker.local`: it holds your `APP_HOST`, `APP_SECRET`, mailer and OAuth settings. If you
+   had changed `docker-compose.yml` (ports, a database image), put those changes into a
+   `docker-compose.override.yml` instead.
+
+4. Build and start the new version:
 
    ```bash
    docker compose up -d --build
-   docker compose logs -f app   # wait for "ready to handle connections"
+   docker compose ps               # wait until app is "healthy"
    ```
+
+   On the first start a database created by an older PostgreSQL (the 1.x releases shipped 11) is
+   upgraded to PostgreSQL 17 in place; `docker compose logs -f database` shows the progress. Then the
+   app hands `var/` to `www-data`, rebuilds the cache and runs the database migrations
+   (`docker compose logs -f app`).
 
 5. Check the result and resynchronize packages, so they pick up the fixes of this release:
 
@@ -96,9 +110,22 @@ for what changed.
    Packages whose first synchronization failed have no name yet and are skipped by
    `synchronize-all`; use *Update* in their *Actions* menu on the package list.
 
-Rolling back: `docker compose down`, check out the previous version, start it, then restore the
-database with `docker compose exec -T database pg_restore -U main -d main --clean < repman-backup.dump`
-and `var/` from the archive.
+If you ran the `buddy/repman` image without a git checkout, clone this repository into a directory with
+the same name as the old one (Docker names the database volume after the directory), move your `var/`
+directory into it and your `.env.docker` to `.env.docker.local`, then continue with step 4.
+
+Rolling back (tested back to 1.4.0): the upgraded database can no longer be read by an older PostgreSQL,
+so the backup is restored into a new one.
+
+```bash
+docker compose down
+git checkout <the tag or commit you ran before>
+git stash pop                                  # your old .env.docker and docker-compose.yml edits
+docker volume rm <directory name>_postgres-data
+docker compose up -d
+docker compose exec -T database pg_restore -U main -d main --clean --if-exists < repman-backup.dump
+tar xzf repman-var-backup.tgz
+```
 
 ### Ansible
 
@@ -192,6 +219,12 @@ Scopes:
 - registration: `user:email`
 - repositories: `read:org`, `repo`
 
+Packages added as plain *Git* from github.com are read through the GitHub API, which allows 60 anonymous
+calls an hour; past that their synchronization fails with "Could not authenticate against github.com". Give
+Composer a token (a fine-grained one without permissions is enough for public repositories) in
+`.env.docker.local`: `COMPOSER_AUTH='{"github-oauth":{"github.com":"<token>"}}'`. Packages added through
+GitHub OAuth keep using their own token.
+
 ### GitLab
 
 Scopes:
@@ -277,7 +310,7 @@ STORAGE_AWS_PATH_STYLE_ENDPOINT=true
 ## Docker
 
 - Override with `docker-compose.override.yml` if needed.
-- Set your domain (`APP_HOST`) in `.env.docker`.
+- Set your domain (`APP_HOST`) and other settings in `.env.docker.local`, it overrides `.env.docker`.
 
 If you wish to use your own certificate put key and certificate in:
 
@@ -286,10 +319,10 @@ If you wish to use your own certificate put key and certificate in:
 
 Otherwise self-sign certificate will be generated.
 
-To start all containers run:
+To build the image and start all containers run:
 
 ```bash
-docker-compose up
+docker compose up -d --build
 ```
 
 ## Support

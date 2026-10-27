@@ -11,11 +11,17 @@
   pulling `buddy/repman:1.3.4`, and the containers run as `www-data`. On start, ownership of `var/` is
   handed to `www-data`, so files an older version wrote as root keep working. The crontab moved from
   `docker/crontabs/root` to `docker/crontabs/www-data`.
+- docker: your settings belong in `.env.docker.local` (ignored by git, overrides `.env.docker`), compose
+  changes in `docker-compose.override.yml`; see the upgrade steps in the README.
+- docker: the database runs PostgreSQL 17 (`pgautoupgrade/pgautoupgrade`, the official image plus an
+  in-place `pg_upgrade`); a database created by an older PostgreSQL is upgraded on the first start. Back it
+  up first: an older PostgreSQL cannot read it afterwards. app waits for the database, consumer and cron
+  wait for the migrations.
 - the Packagist proxy now fetches metadata from `repo.packagist.org` (packagist.org refuses Repman).
   `repman:proxy:sync-releases` is deprecated and does nothing; remove it from your crontab
   (the Ansible role does).
-- PEAR packages can no longer be added or synchronized: Composer 2 removed PEAR support. Remove `pear`
-  from `APP_ALLOWED_PACKAGE_TYPES` if you set it.
+- PEAR packages can no longer be added or synchronized: Composer 2 removed PEAR support. `pear` left in
+  `APP_ALLOWED_PACKAGE_TYPES` is ignored.
 - `STORAGE_SOURCE=storage.local.cached` / `storage.s3.cached` still work but no longer cache metadata
   (Flysystem dropped the cache adapter); you can switch to `storage.local` / `storage.s3`.
 - `GA_TRACKING` (Universal Analytics, shut down by Google in 2023) was removed; `GA4_TRACKING` stays.

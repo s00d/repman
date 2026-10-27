@@ -1,24 +1,37 @@
 x-restart-policy: &restart_policy
   restart: unless-stopped
 
-# app, consumer and cron run the same image, built from this checkout. To use a published image
-# instead, set REPMAN_IMAGE (e.g. buddy/repman:1.5.0) and run `docker compose up --no-build`.
+# app, consumer and cron run the same image, built from this checkout. To run an image built
+# elsewhere, set REPMAN_IMAGE (e.g. registry.example.com/repman:latest) and run `docker compose up --no-build`.
+# settings: .env.docker holds the defaults and is tracked by git, put your own values (APP_HOST,
+# APP_SECRET, MAILER_DSN, OAuth keys...) into .env.docker.local, which git ignores and wins
+x-env-files: &env_files
+  - .env.docker
+  - path: .env.docker.local
+    required: false
+
 x-repman-image: &repman_image
   image: ${REPMAN_IMAGE:-repman:local}
   build: .
 
 services:
+  # the official postgres image plus an in-place pg_upgrade: data of an older PostgreSQL (the 1.x
+  # releases shipped 11) is upgraded to 17 on the first start, a new volume starts as plain 17
   database:
     << : *restart_policy
-    image: postgres:17-alpine
-    logging:
-      driver: none
+    image: pgautoupgrade/pgautoupgrade:17-alpine
     environment:
       POSTGRES_USER: main
       POSTGRES_PASSWORD: main
       POSTGRES_DB: main
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'main', '-d', 'main']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30m  # an upgrade of a big database takes a while
 
   # each service starts as root only to hand var/ (a bind mount, possibly written by an older
   # version as root) to www-data, then runs as www-data; php-fpm's workers run as www-data.
@@ -28,22 +41,30 @@ services:
     << : [*restart_policy, *repman_image]
     sysctls:
       net.core.somaxconn: 2048
+    # /tmp/ready marks the migrations as done: consumer and cron wait for it
     command: >
-      bash -c 'chown -R www-data:www-data var &&
+      bash -c 'rm -f /tmp/ready &&
+      chown -R www-data:www-data var &&
       mkdir -p public/bundles && chown -R www-data:www-data public/bundles &&
       su-exec www-data bin/console cache:clear &&
       su-exec www-data bin/console d:m:m --no-interaction &&
       su-exec www-data bin/console messenger:setup-transports --no-interaction &&
       su-exec www-data bin/console repman:security:update-db &&
       su-exec www-data bin/console assets:install &&
+      touch /tmp/ready &&
       php-fpm'
-    env_file: .env.docker
+    env_file: *env_files
     volumes:
       - app-var:/app/var
       - /app/var/cache
       - app-public:/app/public
+    healthcheck:
+      test: ['CMD', 'test', '-f', '/tmp/ready']
+      interval: 5s
+      start_period: 5m
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
   consumer:
     << : [*restart_policy, *repman_image]
@@ -51,12 +72,13 @@ services:
       sh -c 'chown -R www-data:www-data var/cache &&
       su-exec www-data bin/console cache:clear &&
       exec su-exec www-data bin/console messenger:consume async --limit=500'
-    env_file: .env.docker
+    env_file: *env_files
     volumes:
       - app-var:/app/var
       - /app/var/cache
     depends_on:
-      - app
+      app:
+        condition: service_healthy
 
   # crond itself runs as root; the jobs in docker/crontabs/www-data run as www-data
   cron:
@@ -65,18 +87,19 @@ services:
       sh -c 'chown -R www-data:www-data var/cache &&
       su-exec www-data bin/console cache:clear &&
       exec crond -f -L /app/var/log/cron.log'
-    env_file: .env.docker
+    env_file: *env_files
     volumes:
       - app-var:/app/var
       - /app/var/cache
       - docker-crontabs:/var/spool/cron/crontabs
     depends_on:
-      - app
+      app:
+        condition: service_healthy
 
   nginx:
     << : *restart_policy
     image: nginx:1.30-alpine
-    env_file: .env.docker
+    env_file: *env_files
     command: ['/nginx/start.sh']
     ports:
       - 443:443

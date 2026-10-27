@@ -22,6 +22,9 @@ On next release:
 - Proxy Packagist through repo.packagist.org with conditional metadata refreshes ([#702](https://github.com/repman-io/repman/issues/702), [#709](https://github.com/repman-io/repman/issues/709))
 - `repman:proxy:sync-releases` is deprecated and does nothing ([#701](https://github.com/repman-io/repman/issues/701))
 - Honour `MESSENGER_TRANSPORT_DSN` ([#533](https://github.com/repman-io/repman/issues/533))
+- Docker: the database image upgrades data of an older PostgreSQL (the 1.x releases shipped 11) to 17 in place;
+  app waits for the database, consumer and cron for the migrations; own settings live in `.env.docker.local`
+- `COMPOSER_AUTH` (e.g. a GitHub token against the API rate limit) is used when packages are synchronized
 - Update front-end libraries (jQuery 3.7, Bootstrap 4.6, ApexCharts 3.54) with SRI
 
 ### Fixed
@@ -44,6 +47,9 @@ On next release:
 - The Buddy button on the registration page appeared only when Bitbucket was enabled
 - HTML in package descriptions was shown escaped, descriptions are plain text now
 - Docker on Linux: `assets:install` could not write the bind mounted `public/` as `www-data`
+- Docker: the database logged nothing, so a failing database restarted without a trace
+- Per-version statistics listed normalized versions (3.0.2.0) instead of the package's own names
+- Searching packages dropped the chosen sort order
 
 ### Removed
 - PEAR package type (removed from Composer 2)

@@ -58,12 +58,9 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
     public function synchronize(Package $package): void
     {
         try {
-            $io = $this->createIO($package);
-            $config = $this->createConfig($package, $io);
-            $repository = current(RepositoryFactory::defaultRepos($io, $config, RepositoryFactory::manager($io, $config)));
-            if (!$repository instanceof RepositoryInterface) {
-                throw new \RuntimeException('No repository configured for package');
-            }
+            $io = $this->createIO();
+            $repository = $this->createRepository($package, $io);
+            $this->authenticate($package, $io);
             $json = ['packages' => []];
             $packages = $repository->getPackages();
 
@@ -262,10 +259,17 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
         return \parse_url($this->gitlabUrl, \PHP_URL_HOST).$port;
     }
 
-    private function createIO(Package $package): BufferIO
+    private function createIO(): BufferIO
     {
-        $io = new BufferIO('', OutputInterface::VERBOSITY_VERY_VERBOSE);
+        return new BufferIO('', OutputInterface::VERBOSITY_VERY_VERBOSE);
+    }
 
+    /**
+     * Must run after the repository is created: that loads the Composer config into the IO, and a global
+     * token (COMPOSER_AUTH) would otherwise replace the token of the package.
+     */
+    private function authenticate(Package $package, IOInterface $io): void
+    {
         if ($package->type() === 'github-oauth') {
             $io->setAuthentication('github.com', $this->accessToken($package), 'x-oauth-basic');
         }
@@ -277,13 +281,22 @@ final class ComposerPackageSynchronizer implements PackageSynchronizer
         if ($package->type() === 'bitbucket-oauth') {
             $io->setAuthentication('bitbucket.org', 'x-token-auth', $this->accessToken($package));
         }
-
-        return $io;
     }
 
     private function accessToken(Package $package): string
     {
         return $package->oauthToken()->accessToken($this->tokenRefresher);
+    }
+
+    private function createRepository(Package $package, IOInterface $io): RepositoryInterface
+    {
+        $config = $this->createConfig($package, $io);
+        $repository = current(RepositoryFactory::defaultRepos($io, $config, RepositoryFactory::manager($io, $config)));
+        if (!$repository instanceof RepositoryInterface) {
+            throw new \RuntimeException('No repository configured for package');
+        }
+
+        return $repository;
     }
 
     private function createConfig(Package $package, IOInterface $io): Config
