@@ -47,3 +47,11 @@ composer.phar
 /node_modules/
 /public/build/
 ###< frontend ###
+/.env.docker.local
+
+###> local docker files (deploy key, backups, overrides) ###
+/ssh
+/repman-backup.dump
+/repman-var-backup.tgz
+/docker-compose.override.yml
+###< local docker files ###

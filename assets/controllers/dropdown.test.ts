@@ -82,6 +82,21 @@ describe('dropdown placement', () => {
         expect([end.top, end.right, end.left]).toEqual(['54px', '700px', 'auto']);
     });
 
+    it('opens upwards when the menu does not fit below its toggle', () => {
+        Object.defineProperty(document.documentElement, 'clientHeight', { configurable: true, value: 800 });
+        const menu = document.querySelector<HTMLElement>('#start [data-dropdown-menu]')!;
+        Object.defineProperty(menu, 'offsetHeight', { configurable: true, value: 120 });
+
+        at('start', { left: 40, top: 760, bottom: 790 });
+        document.querySelector<HTMLElement>('#start [data-dropdown-toggle]')!.click();
+        expect(menu.style.top).toBe('636px');
+
+        document.querySelector<HTMLElement>('#start [data-dropdown-toggle]')!.click();
+        at('start', { left: 40, top: 100, bottom: 130 });
+        document.querySelector<HTMLElement>('#start [data-dropdown-toggle]')!.click();
+        expect(menu.style.top).toBe('134px');
+    });
+
     it('closes when the page scrolls', () => {
         document.querySelector<HTMLElement>('#start [data-dropdown-toggle]')!.click();
         window.dispatchEvent(new Event('scroll'));

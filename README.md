@@ -8,7 +8,7 @@
 > PHP 8.4 and Symfony 6.4 LTS, has every dependency advisory closed, a working Packagist proxy and a set
 > of bug fixes; the changes are offered upstream in
 > [repman-io/repman#717](https://github.com/repman-io/repman/pull/717). Existing installations can
-> switch to it without losing data, see [Switching from repman-io/repman](#switching-from-repman-iorepman).
+> switch to it without losing data, see [Upgrading a Docker installation](#upgrading-a-docker-installation).
 
 **Repman** is a PHP repository manager. Main features:
 
@@ -38,24 +38,6 @@ Documentation: [https://repman.io/docs/](https://repman.io/docs/)
 
 `docker-compose.yml` builds the image from this checkout: `docker compose up -d --build`.
 
-#### Switching from repman-io/repman
-
-The fork reads the same database and `var/` layout, so an existing installation switches with the
-upgrade below; only the source of the code changes. In the checkout your installation runs from:
-
-```bash
-cp .env.docker .env.docker.mine                       # your settings; the file is tracked by git
-git stash                                             # parks any local edits (git stash pop brings them back)
-git remote add fork https://github.com/s00d/repman.git
-git fetch fork
-git checkout -B master fork/master                    # var/ is untracked and stays as it is
-cp .env.docker.mine .env.docker                       # put your settings back
-```
-
-If you ran the `buddy/repman` image without a git checkout, clone this repository and move your
-`var/` directory and `.env.docker` into the clone before the upgrade steps; run `docker compose` from
-the clone.
-
 #### Private Git repositories over SSH
 
 Packages are synchronized by the `consumer` service as `www-data` (home `/home/www-data`). Give it
@@ -77,10 +59,9 @@ Composer installs them from source and developers need access to the repository 
 
 #### Upgrading a Docker installation
 
-These steps were tested by switching a repman-io/repman `master` checkout (running the
-`buddy/repman:1.3.4` image) to this fork with organizations, packages, tokens, invitations and real
-download statistics; all data was kept, packages were added and installed afterwards. See [UPGRADE.md](UPGRADE.md)
-for what changed.
+The same steps switch an installation of repman-io/repman (a release such as 1.4.0, or its `master`) to
+this fork and upgrade the fork later; the database and `var/` keep their layout. Run them in the checkout
+your installation runs from. See [UPGRADE.md](UPGRADE.md) for what changed.
 
 1. Back up the database and `var/` (packages, proxy cache, logs) while the old version runs:
 
@@ -95,17 +76,33 @@ for what changed.
    docker compose down
    ```
 
-3. Update the checkout (`git pull`, or check out the release tag). Keep your `.env.docker`; if it
-   lists `pear` in `APP_ALLOWED_PACKAGE_TYPES`, remove it (Composer 2 dropped PEAR). `GA_TRACKING`
-   is no longer used.
+3. Get the new code. Your own settings go to `.env.docker.local`, which git ignores and which wins
+   over the defaults in `.env.docker`, so later updates never conflict with them. When switching from
+   repman-io/repman:
 
-4. Build and start the new version. On start the app hands `var/` to `www-data`, rebuilds the cache
-   and runs the database migrations:
+   ```bash
+   git diff -U0 -- .env.docker | grep '^+[A-Z]' | cut -c2- >> .env.docker.local   # only the values you changed
+   git stash                       # parks your edits of tracked files; git stash show -p lists them
+   git remote add fork https://github.com/s00d/repman.git
+   git fetch fork
+   git checkout -B master fork/master
+   ```
+
+   Check `.env.docker.local`: it holds your `APP_HOST`, `APP_SECRET`, mailer and OAuth settings. If you
+   had changed `docker-compose.yml` (ports, a database image), put those changes into a
+   `docker-compose.override.yml` instead. Later updates of the fork are a plain `git pull`.
+
+4. Build and start the new version:
 
    ```bash
    docker compose up -d --build
-   docker compose logs -f app   # wait for "ready to handle connections"
+   docker compose ps               # wait until app is "healthy"
    ```
+
+   On the first start a database created by an older PostgreSQL (repman-io/repman releases shipped 11)
+   is upgraded to PostgreSQL 17 in place; `docker compose logs -f database` shows the progress. Then the
+   app hands `var/` to `www-data`, rebuilds the cache and runs the database migrations
+   (`docker compose logs -f app`).
 
 5. Check the result and resynchronize packages, so they pick up the fixes of this release:
 
@@ -117,9 +114,15 @@ for what changed.
    Packages whose first synchronization failed have no name yet and are skipped by
    `synchronize-all`; use *Update* in their *Actions* menu on the package list.
 
-Rolling back: `docker compose down`, check out the previous version, start it, then restore the
-database with `docker compose exec -T database pg_restore -U main -d main --clean < repman-backup.dump`
-and `var/` from the archive.
+If you ran the `buddy/repman` image without a git checkout, clone this repository into a directory with
+the same name as the old one (Docker names the database volume after the directory), move your `var/`
+directory into it and your `.env.docker` to `.env.docker.local`, then continue with step 4.
+
+Rolling back: the upgraded database can no longer be read by an older PostgreSQL, so restore the backup.
+Stop the stack, check out the previous version, remove the database volume
+(`docker volume rm <directory name>_postgres-data`), start the old version, then run
+`docker compose exec -T database pg_restore -U main -d main --clean --if-exists < repman-backup.dump` and
+unpack `repman-var-backup.tgz` over `var/`.
 
 ### Ansible
 
@@ -305,7 +308,7 @@ STORAGE_AWS_PATH_STYLE_ENDPOINT=true
 ## Docker
 
 - Override with `docker-compose.override.yml` if needed.
-- Set your domain (`APP_HOST`) in `.env.docker`.
+- Set your domain (`APP_HOST`) and other settings in `.env.docker.local`, it overrides `.env.docker`.
 
 If you wish to use your own certificate put key and certificate in:
 

@@ -15,11 +15,15 @@ function items(menu: HTMLElement): HTMLElement[] {
     return [...menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')];
 }
 
-// the open menu is fixed to the viewport, so a scrolling table around it cannot clip it
+// the open menu is fixed to the viewport, so a scrolling table around it cannot clip it; it opens
+// upwards when there is no room below the toggle but there is above it (a card at the page bottom)
 function place(menu: HTMLElement, toggle: HTMLElement, alignEnd: boolean): void {
     const rect = toggle.getBoundingClientRect();
+    const height = menu.offsetHeight;
+    const viewport = document.documentElement.clientHeight;
+    const up = rect.bottom + GAP + height > viewport && rect.top - GAP - height >= 0;
     menu.style.position = 'fixed';
-    menu.style.top = `${rect.bottom + GAP}px`;
+    menu.style.top = `${up ? rect.top - GAP - height : rect.bottom + GAP}px`;
     if (alignEnd) {
         menu.style.right = `${document.documentElement.clientWidth - rect.right}px`;
         menu.style.left = 'auto';
@@ -35,10 +39,11 @@ function setOpen(dropdown: HTMLElement, open: boolean): void {
     if (!menu || !toggle) {
         return;
     }
+    // shown first: placing it needs its height
+    menu.classList.toggle(OPEN, open);
     if (open) {
         place(menu, toggle, dropdown.dataset.dropdownAlign === 'end');
     }
-    menu.classList.toggle(OPEN, open);
     toggle.setAttribute('aria-expanded', String(open));
 }
 
