@@ -120,6 +120,20 @@ final class SensioLabsPackageScannerTest extends TestCase
         $this->assertPackageSecurity('n/a', $package);
     }
 
+    public function testLockFileAtTheRootOfAnArtifact(): void
+    {
+        $package = PackageMother::synchronized('buddy-works/repman', self::VERSION);
+
+        $this->checkerMock = $this->createMock(SecurityChecker::class);
+        $this->checkerMock->expects(self::once())->method('check')
+            ->with(self::stringContains('"packages"'))
+            ->willReturn(['vendor/some-dependency' => ['version' => '6.6.6', 'advisories' => [['title' => 'Compromised']]]]);
+        $this->prepareScanner('repman-root-lock')->scan($package);
+
+        $this->assertPackageSecurity('warning', $package);
+        self::assertSame(['/composer.lock'], array_keys((array) (new \ReflectionProperty($package, 'lastScanResult'))->getValue($package)));
+    }
+
     public function testBrokenZip(): void
     {
         $this->repoMock
