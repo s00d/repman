@@ -51,12 +51,14 @@ final class ComposerPackageSynchronizerTest extends TestCase
     {
         $path = $this->baseDir.'/buddy/p/repman-io/repman.json';
         @unlink($path);
+        // left by runs from before path dists were skipped
+        $stale = glob($this->baseDir.'/buddy/dist/repman-io/repman/*.path');
+        array_map(unlink(...), is_array($stale) ? $stale : []);
 
         // a plain directory (no VCS), so the result does not depend on the git state of this checkout
         $basePath = sys_get_temp_dir().'/repman-path-'.uniqid('', true);
         mkdir($basePath);
         file_put_contents($basePath.'/composer.json', (string) json_encode(['name' => 'repman-io/repman', 'version' => '1.2.3']));
-        $this->downloader->addContent($basePath, 'foobar');
 
         $package = PackageMother::withOrganization('path', $basePath, 'buddy');
         $this->synchronizer->synchronize($package);
@@ -71,6 +73,11 @@ final class ComposerPackageSynchronizerTest extends TestCase
         rmdir($basePath);
 
         self::assertCount(1, $package->versions());
+        // the directory is not archived: there is no dist to download (the version is installed from the path)
+        $version = $package->versions()->first();
+        self::assertInstanceOf(Version::class, $version);
+        self::assertSame(0, $version->size());
+        self::assertSame([], glob($this->baseDir.'/buddy/dist/repman-io/repman/*.path'));
     }
 
     public function testSynchronizeGitPackagePrefersTagOverComposerJsonVersion(): void

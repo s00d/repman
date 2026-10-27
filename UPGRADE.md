@@ -11,6 +11,10 @@
   pulling `buddy/repman:1.3.4`, and the containers run as `www-data`. On start, ownership of `var/` is
   handed to `www-data`, so files an older version wrote as root keep working. The crontab moved from
   `docker/crontabs/root` to `docker/crontabs/www-data`.
+- docker: the web server is Caddy instead of nginx (the service keeps the name `nginx`). A certificate
+  in `docker/nginx/ssl/` is used as before, including the self-signed one the nginx setup generated; set
+  `ACME_EMAIL` to get Let's Encrypt certificates instead, see "HTTPS and Let's Encrypt" in the README.
+  `docker/logs/nginx` is no longer written (logs: `docker compose logs nginx`) and can be deleted.
 - docker: your settings belong in `.env.docker.local` (ignored by git, overrides `.env.docker`), compose
   changes in `docker-compose.override.yml`; see the upgrade steps in the README.
 - docker: the database runs PostgreSQL 17 (`pgautoupgrade/pgautoupgrade`, the official image plus an

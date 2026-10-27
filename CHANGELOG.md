@@ -30,6 +30,9 @@ On next release:
 - Docker: the database image upgrades data of an older PostgreSQL (upstream releases shipped 11) to 17 in place;
   app waits for the database, consumer and cron for the migrations; own settings live in `.env.docker.local`
 - `COMPOSER_AUTH` (e.g. a GitHub token against the API rate limit) is used when packages are synchronized
+- Docker: Caddy replaces nginx. With `ACME_EMAIL` set it gets Let's Encrypt certificates for the app, the proxy and
+  every organization's host by itself (issued on first use, only for hosts Repman serves, renewed in the
+  background); otherwise it uses `docker/nginx/ssl/` or its own local CA. HTTP/3, no more openssl scripts
 - Security scans use Packagist's security advisories API (GitHub Advisory Database plus FriendsOfPHP) instead of a
   git clone of FriendsOfPHP alone, which missed most advisories (e.g. 2 of 18 for league/commonmark)
 - Downloads go through Symfony HttpClient (retries, redirects, concurrency) instead of ReactPHP and own retry code;
@@ -61,6 +64,7 @@ On next release:
 - Security scans skipped packages installed from source (plain git over SSH, Mercurial, Subversion): they have no
   archive to read composer.lock from; the sync now keeps the committed lock of the scanned versions
 - Artifact packages were never scanned (composer.lock at the archive root was not found)
+- Path packages failed to synchronize: their dist, a directory on the server, was downloaded like an archive
 - Searching packages dropped the chosen sort order; menus at the bottom of a page opened off screen
 
 ### Removed
