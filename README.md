@@ -223,6 +223,12 @@ Scopes:
 - registration: `user:email`
 - repositories: `read:org`, `repo`
 
+Packages added as plain *Git* from github.com are read through the GitHub API, which allows 60 anonymous
+calls an hour; past that their synchronization fails with "Could not authenticate against github.com". Give
+Composer a token (a fine-grained one without permissions is enough for public repositories) in
+`.env.docker.local`: `COMPOSER_AUTH='{"github-oauth":{"github.com":"<token>"}}'`. Packages added through
+GitHub OAuth keep using their own token.
+
 ### GitLab
 
 Scopes:

@@ -12,7 +12,7 @@ x-env-files: &env_files
     required: false
 
 x-repman-image: &repman_image
-  image: ${REPMAN_IMAGE:-repman:local}
+  image: ${REPMAN_IMAGE:-repman:2.0.0}
   build: .
 
 services:

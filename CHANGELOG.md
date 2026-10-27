@@ -10,7 +10,7 @@ On next release:
 - [ ] update src/Kernel.php (REPMAN_VERSION)
 - [ ] update docker-compose.yml (image tags)
 
-## [Unreleased]
+## [2.0.0] - Unreleased
 ### Security
 - Update all dependencies; `composer audit` reported 88 advisories against the previous lock file
 - Escape raw HTML in package READMEs (rendered unescaped on the package page)
@@ -27,6 +27,9 @@ On next release:
   free for every company), an own form theme; building it needs Node.js (the Docker image does it)
 - Lists (packages, versions, tokens, members, admin) are cards on every screen size, a grid on wide screens; packages
   are sorted with buttons above the list
+- Docker: the database image upgrades data of an older PostgreSQL (upstream releases shipped 11) to 17 in place;
+  app waits for the database, consumer and cron for the migrations; own settings live in `.env.docker.local`
+- `COMPOSER_AUTH` (e.g. a GitHub token against the API rate limit) is used when packages are synchronized
 
 ### Fixed
 - Prefer the VCS tag/branch name over a hardcoded `version` in composer.json when syncing (tags were silently skipped: the sync looked successful but the release never appeared, [#715](https://github.com/repman-io/repman/pull/715))
@@ -48,6 +51,8 @@ On next release:
 - The timezone select showed (and saved) the first zone of the list for users still on the default UTC
 - The Buddy button on the registration page appeared only when Bitbucket was enabled
 - Docker on Linux: `assets:install` could not write the bind mounted `public/` as `www-data`
+- Docker: the database logged nothing, so a failing database restarted without a trace
+- Searching packages dropped the chosen sort order; menus at the bottom of a page opened off screen
 
 ### Removed
 - PEAR package type (removed from Composer 2)

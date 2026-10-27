@@ -1,6 +1,6 @@
 # UPGRADE
 
-## UPGRADE FROM 1.4.x TO THE NEXT RELEASE
+## UPGRADE FROM 1.x TO 2.0.0
 
 - PHP **8.4** is required (was 7.4/8.0), together with the `intl`, `mbstring`, `pdo_pgsql` and `zip`
   extensions. Symfony was raised from 5.4 to 6.4 LTS and Doctrine ORM from 2 to 3; if you made custom

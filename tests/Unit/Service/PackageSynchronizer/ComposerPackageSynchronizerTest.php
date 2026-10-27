@@ -14,6 +14,7 @@ use Buddy\Repman\Service\PackageSynchronizer\ComposerPackageSynchronizer;
 use Buddy\Repman\Service\User\UserOAuthTokenRefresher;
 use Buddy\Repman\Tests\Doubles\FakeDownloader;
 use Buddy\Repman\Tests\MotherObject\PackageMother;
+use Composer\IO\BufferIO;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -266,6 +267,25 @@ final class ComposerPackageSynchronizerTest extends TestCase
         $json = unserialize((string) file_get_contents($path));
         self::assertNotSame([], $json['packages']['repman-io/repman']);
         @unlink($path);
+    }
+
+    public function testTokenOfThePackageWinsOverAGlobalComposerAuthToken(): void
+    {
+        putenv('COMPOSER_AUTH={"github-oauth":{"github.com":"global-token"}}');
+        try {
+            $package = PackageMother::withOrganizationAndToken('github', 'https://github.com/buddy-works/repman', 'buddy');
+            $call = fn (string $method, mixed ...$args): mixed => (new \ReflectionMethod($this->synchronizer, $method))->invoke($this->synchronizer, ...$args);
+
+            /** @var BufferIO $io */
+            $io = $call('createIO');
+            $call('createRepository', $package, $io);
+            self::assertSame('global-token', $io->getAuthentication('github.com')['username']);
+
+            $call('authenticate', $package, $io);
+            self::assertSame('secret', $io->getAuthentication('github.com')['username']);
+        } finally {
+            putenv('COMPOSER_AUTH');
+        }
     }
 
     public function testSynchronizePackageWithBitbucketToken(): void
