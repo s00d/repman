@@ -56,6 +56,9 @@ On next release:
 - Docker: the database logged nothing, so a failing database restarted without a trace
 - Per-version statistics listed normalized versions (3.0.2.0) instead of the package's own names
 - Searching packages dropped the chosen sort order
+- Security scans skipped packages installed from source (plain git over SSH, Mercurial, Subversion): they have no
+  archive to read composer.lock from; the sync now keeps the committed lock of the scanned versions
+- Artifact packages were never scanned (composer.lock at the archive root was not found)
 
 ### Removed
 - PEAR package type (removed from Composer 2)

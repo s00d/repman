@@ -15,3 +15,8 @@ parameters:
         -
             identifier: symfonyContainer.privateService
             path: tests/*
+        # the VCS driver is the only way to read composer.lock of a version without a dist;
+        # Composer marks its interface @internal
+        -
+            message: '#internal interface Composer\\Repository\\Vcs\\VcsDriverInterface#'
+            path: src/Service/PackageSynchronizer/ComposerPackageSynchronizer.php

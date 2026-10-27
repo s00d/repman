@@ -150,8 +150,9 @@ final class SensioLabsPackageScannerTest extends TestCase
     /**
      * @param array<string, array<string, mixed>>|null $versions     provider data of buddy-works/repman, a stable 1.2.3 by default
      * @param string[]                                 $distVersions collects the versions the scanner asks the dist of
+     * @param string|null                              $sourceLock   composer.lock the sync kept for 1.2.3 at source reference "abc123"
      */
-    private function prepareScanner(string $fixtureType = 'repman', ?array $versions = null, array &$distVersions = []): SensioLabsPackageScanner
+    private function prepareScanner(string $fixtureType = 'repman', ?array $versions = null, array &$distVersions = [], ?string $sourceLock = null): SensioLabsPackageScanner
     {
         $distFile = \realpath(__DIR__.'/../../../Resources/fixtures/buddy/dist/buddy-works/'.$fixtureType.'/1.2.3.0_ac7dcaf888af2324cd14200769362129c8dd8550.zip');
         $packageManager = $this->createMock(PackageManager::class);
@@ -174,6 +175,9 @@ final class SensioLabsPackageScannerTest extends TestCase
             ]
         );
 
+        $packageManager->method('sourceLock')->willReturnCallback(
+            fn (string $organization, string $package, string $version, string $ref): ?string => [$package, $version, $ref] === ['buddy-works/repman', '1.2.3.0', 'abc123'] ? $sourceLock : null
+        );
         $packageManager->method('distFilename')->willReturnCallback(function (string $organization, string $package, string $version) use ($distFile, &$distVersions): Option {
             $distVersions[] = $version;
 
@@ -226,6 +230,25 @@ final class SensioLabsPackageScannerTest extends TestCase
 
         $this->assertPackageSecurity('ok', $package);
         self::assertSame(['9999999-dev'], $distVersions);
+    }
+
+    public function testVersionInstalledFromSourceIsScannedFromTheLockTheSyncKept(): void
+    {
+        $this->checkerMock = $this->createMock(SecurityChecker::class);
+        $this->checkerMock->expects(self::once())->method('check')->with('{"packages":[]}')
+            ->willReturn(['vendor/some-dependency' => ['version' => '6.6.6', 'advisories' => [['title' => 'Compromised']]]]);
+        $distVersions = [];
+        $scanner = $this->prepareScanner('repman', [self::VERSION => [
+            'version' => self::VERSION,
+            'version_normalized' => '1.2.3.0',
+            'source' => ['type' => 'git', 'url' => 'git@git.example.com:buddy/repman.git', 'reference' => 'abc123'],
+        ]], $distVersions, '{"packages":[]}');
+        $package = PackageMother::synchronized('buddy-works/repman', self::VERSION);
+
+        $scanner->scan($package);
+
+        $this->assertPackageSecurity('warning', $package);
+        self::assertSame([], $distVersions);
     }
 
     public function testVersionWithoutDistIsNotAvailable(): void

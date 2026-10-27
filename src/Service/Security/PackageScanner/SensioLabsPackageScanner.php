@@ -54,9 +54,7 @@ final class SensioLabsPackageScanner implements PackageScanner
         }
 
         try {
-            $distribution = $this->findDistribution($package);
-            // a version installed from source (no dist archive) has nothing to scan
-            $lockFiles = $distribution === null ? [] : $this->extractLockFiles($distribution);
+            $lockFiles = $this->lockFiles($package);
             if ($lockFiles === []) {
                 $status = ScanResult::STATUS_NOT_AVAILABLE;
             }
@@ -108,7 +106,10 @@ final class SensioLabsPackageScanner implements PackageScanner
         }
     }
 
-    private function findDistribution(Package $package): ?string
+    /**
+     * @return array<string,string> composer.lock contents by their path in the package
+     */
+    private function lockFiles(Package $package): array
     {
         $packageName = (string) $package->name();
         $latestReleasedVersion = (string) $package->latestReleasedVersion();
@@ -126,17 +127,22 @@ final class SensioLabsPackageScanner implements PackageScanner
             throw new \RuntimeException(sprintf('Version %s for package %s not found', $latestReleasedVersion, $packageName));
         }
 
+        $packageVersion = $this->normalizedVersion($packageData);
         $packageDist = $packageData['dist'] ?? [];
         $reference = $packageDist['reference'] ?? $packageDist['shasum'] ?? null;
-        if (!isset($packageDist['url'], $packageDist['type']) || $reference === null) {
-            return null;
+        if (isset($packageDist['url'], $packageDist['type']) && $reference !== null) {
+            return $this->extractLockFiles($this->packageManager
+                ->distFilename($package->organizationAlias(), $packageName, $packageVersion, $reference, $packageDist['type'])
+                ->getOrElseThrow(new \RuntimeException("Distribution file for version $packageVersion not found")));
         }
 
-        $packageVersion = $this->normalizedVersion($packageData);
+        // installed from source (plain git, hg, svn): the sync kept the composer.lock of the version
+        $sourceReference = $packageData['source']['reference'] ?? null;
+        $lock = \is_string($sourceReference)
+            ? $this->packageManager->sourceLock($package->organizationAlias(), $packageName, $packageVersion, $sourceReference)
+            : null;
 
-        return $this->packageManager
-            ->distFilename($package->organizationAlias(), $packageName, $packageVersion, $reference, $packageDist['type'])
-            ->getOrElseThrow(new \RuntimeException("Distribution file for version $packageVersion not found"));
+        return $lock !== null ? ['/composer.lock' => $lock] : [];
     }
 
     /**

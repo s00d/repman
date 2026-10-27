@@ -141,6 +141,33 @@ class PackageManager
         }
     }
 
+    /**
+     * The composer.lock of a version installed from source (no dist archive), kept next to the dists
+     * as <version>_<ref>.lock for the security scan; null drops the stored ones of that version.
+     */
+    public function saveSourceLock(string $organizationAlias, string $packageName, string $version, string $ref, ?string $content): void
+    {
+        if ($content !== null) {
+            $this->repoFilesystem->write($this->sourceLockFilename($organizationAlias, $packageName, $version, $ref), $content);
+        }
+
+        $this->removeVersionDists($organizationAlias, $packageName, $version, 'lock', $content !== null ? $ref : '');
+    }
+
+    public function sourceLock(string $organizationAlias, string $packageName, string $version, string $ref): ?string
+    {
+        try {
+            return $this->repoFilesystem->read($this->sourceLockFilename($organizationAlias, $packageName, $version, $ref));
+        } catch (FilesystemException) {
+            return null;
+        }
+    }
+
+    private function sourceLockFilename(string $organizationAlias, string $packageName, string $version, string $ref): string
+    {
+        return $this->distStorage->filename(new Dist($organizationAlias, $packageName, $this->versionParser->normalize($version), $ref, 'lock'));
+    }
+
     private function filepath(string $organizationAlias, string $packageName): string
     {
         return $organizationAlias.'/p/'.$packageName.'.json';

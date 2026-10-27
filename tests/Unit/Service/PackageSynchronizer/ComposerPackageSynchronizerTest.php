@@ -73,6 +73,37 @@ final class ComposerPackageSynchronizerTest extends TestCase
         self::assertCount(1, $package->versions());
     }
 
+    public function testSynchronizeGitPackageWithoutDistKeepsTheLockFileOfTheScannedVersions(): void
+    {
+        $repoDir = sys_get_temp_dir().'/repman-git-'.uniqid('', true);
+        mkdir($repoDir);
+        $git = static function (string ...$command) use ($repoDir): string {
+            return new Process(['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'init.defaultBranch=main', ...$command], $repoDir)->mustRun()->getOutput();
+        };
+        file_put_contents($repoDir.'/composer.json', (string) json_encode(['name' => 'buddy-works/locked-app']));
+        file_put_contents($repoDir.'/composer.lock', '{"packages":[{"name":"old/dep","version":"1.0.0"}]}');
+        $git('init');
+        $git('add', '.');
+        $git('commit', '-m', 'initial');
+        $git('tag', '1.0.0');
+        file_put_contents($repoDir.'/composer.lock', '{"packages":[{"name":"new/dep","version":"2.0.0"}]}');
+        $git('commit', '-am', 'update');
+        $git('tag', '1.1.0');
+        $ref = trim($git('rev-parse', 'HEAD'));
+
+        $package = PackageMother::withOrganization('git', $repoDir, 'buddy');
+        $this->synchronizer->synchronize($package);
+
+        self::assertTrue($package->isSynchronizedSuccessfully(), (string) $this->getProperty($package, 'lastSyncError'));
+        $dir = $this->baseDir.'/buddy/dist/buddy-works/locked-app';
+        // the latest release and the default branch are what the scan reads, older tags are not
+        self::assertStringEqualsFile($dir.'/1.1.0.0_'.$ref.'.lock', '{"packages":[{"name":"new/dep","version":"2.0.0"}]}');
+        self::assertStringEqualsFile($dir.'/dev-main_'.$ref.'.lock', '{"packages":[{"name":"new/dep","version":"2.0.0"}]}');
+        self::assertSame([], glob($dir.'/1.0.0.0_*'));
+
+        (new \Symfony\Component\Filesystem\Filesystem())->remove([$repoDir, $dir, $this->baseDir.'/buddy/p/buddy-works/locked-app.json']);
+    }
+
     public function testSynchronizeGitPackageWithoutDistRecordsVersionsAndLinks(): void
     {
         $repoDir = sys_get_temp_dir().'/repman-git-'.uniqid('', true);
